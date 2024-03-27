@@ -295,6 +295,47 @@ test_project/
 
 ---
 
+## 覆蓋率分析  
+
+### ── Command  
+- 當執行測試之後在在 Terminal 畫面上會顯示目前被測程式，被測試到的覆蓋率 %。  
+![覆蓋率](https://hackmd.io/_uploads/S1018P-10.png)  
+
+### ── HTML  
+- 執行測試完畢的同時在 Coverage 資料夾下的 lcov-report 裡，也會生成一個 index.html。  
+![index網頁](https://hackmd.io/_uploads/Hk9LUPZkR.png)  
+
+- 裡面提供了更詳細的圖表分析報告。  
+![總分析報告](https://hackmd.io/_uploads/BkMK0PWyR.png)  
+
+- 可以針對個別檔案點擊，查看詳細的內容。  
+    - 內容會以<span class="red">**紅色**</span>標註指出未覆蓋到的 Statements。  
+    
+    - 而在判斷處會指出其中 **if** 或 **else** 沒有被測試到。  
+    
+    - 能夠更精確的撰寫測試案例，以便覆蓋到所有 Statements。  
+
+    ![個別分析報告](https://hackmd.io/_uploads/rJ6kdvWkA.png)  
+
+---
+
 ## Reference  
 - [Jest Docs](https://jestjs.io/docs/getting-started)  
 - [Jest Methods](https://jestjs.io/docs/api#methods)  
+
+
+
+<style>
+    .red {
+      color: red;
+    }
+    .Orange {
+      color: Darkorange ;   
+    }
+    .Brown {
+      color: SandyBrown;   
+    }
+    .yellow {
+      color: Gold;   
+    }
+</style>
