@@ -1,0 +1,300 @@
+---
+layout: post
+title: Jest Testing
+date: 2024-03-15
+subtitle: How to create a test cases in Jest
+author: Jensen Hsiao
+banner:
+  image: 'assets/images/banners/Jest.png'
+  opacity: 0.9
+categories: Testing
+tags:
+  - Test
+  - Node.js
+  - JavaScript
+--- 
+## Jest 前端測試框架  
+ 
+- 目前在專案中希望能夠配合 CI/CD，以進行自動化測試。除了對後端進行自動化測試外，也希望能針對前端進行測試。  
+
+- 因此，我寫了一個使用 Jest 框架來建立前端測試環境的專案。未來各專案可以 clone 這份專案，並與 CI/CD 配合進行前端測試的開發。  
+
+- 在這個專案中，順手記錄了一些 Jest 框架應用，以及前端測試可能會用到的方法。  
+
+
+### ── 專案結構  
+
+test_project/  
+├── src/  
+│   ├── components/  
+│   │   ├── Component1.js  
+│   │   ├── Component2.js  
+│   ├── utils/  
+│   │   ├── util1.js  
+│   │   ├── util2.  
+├── tests/  
+│   ├── unit/  
+│   │   ├── component1.test.js  
+│   │   ├── component2.test.js  
+│   ├── integration/  
+│   │   ├── integration_test1.test.js  
+│   │   ├── integration_test2.test.js  
+├── coverage/  
+│   ├── lcov-report/  
+│   │   ├── index.html  
+├── package.json  
+├── setupTests.js  
+
+
+### ── 測試相關配置  
+
+- Jest 的 package.json 可以設定測試的相關配置，這些配置通常包括測試的入口文件、測試覆蓋率報告、以及其他一些自定義配置。  
+
+```json
+{
+  "name": "your-project-name",
+  "version": "1.0.0",
+  "description": "Description of your project",
+  "scripts": {
+  "test": "jest"  // --watch, --watchAll
+  },
+  "devDependencies": {
+    "jest": "^27.0.6"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/?(*.)+(spec|test).js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
+    "coverageReporters": [
+      "json",
+      "lcov",
+      "text",
+      "clover"
+    ],
+    "coverageDirectory": "coverage",
+  }
+}
+```
+
+- devDependencies : 在這個節點中，列出了專案所需的 devDependencies。  
+    - 這邊可以使用 npm install --save-dev jest 或 yarn add --dev jest 來安裝 Jest。  
+<br>
+- jest : 在這個節點中，定義了 Jest 測試的配置選項：  
+    - testEnvironment: 指定 Jest 測試的環境。  
+    - testMatch: 指定 Jest 測試文件的匹配模式。  
+    - coverageThreshold: 定義代碼覆蓋率的閾值。  
+    - collectCoverageFrom: 指定哪些文件需要收集代碼覆蓋率訊息。  
+    - coverageReporters: 指定生成覆蓋率報告的格式。  
+    - coverageDirectory: 指定覆蓋率報告的輸出目錄。  
+<br>
+- 上述是 package.json 配置中的一些常見選項，根據具體需求，可以在加入其他配置。  
+
+
+### ── 如何開始測試  
+
+- 在 COMMAND LINE(CMD) 運行測試  
+<br>
+    - 打開（CMD）使用 cd 命令進入你的專案目錄。  
+<br>
+    - 如果在 package.json 中設置了測試腳本，一旦進入了專案目錄，可以直接運行測試。  
+    
+        ```bash
+        cd path/to/your/project
+        ```
+    - 或是輸入指令進行測試，這將會運行所有的測試並輸出結果到終端。  
+        ```bash
+        npm test
+        ```
+        ```bash
+        npm test -- --coverage        # --coverage 會顯示覆蓋率
+        ```
+    - 預設情況下，Jest 會自動去找：__tests__ 資料夾內的 .js, .jsx, .ts, .tsx 以 .test 或 .spec 結尾的檔案，例如 component1.test.js or integration_test1.test.js  
+
+---  
+
+## 測試方法  
+
+### ── 測試案例  
+- **describe**  
+    - 組織測試案例：使用 describe 函數來將測試案例分組，使其更有組織性和易讀性。  
+    - 提供描述標題：每個 describe 區塊都可以有一個描述性的標題，這可以清楚地說明這組測試案例的目的或主題。  
+    - 隔離測試案例：使用 describe 函數將相關的測試案例分組，這樣可以更好地隔離測試案例之間的影響。  
+<br>
+- **it / test**  
+    - 提供測試案例的描述：通過標題清楚地描述測試的目的或要驗證的功能。  
+    - 提供可讀性和可維護性：通過清晰的描述和組織良好的測試案例，提高測試的可讀性和可維護性。  
+<br>
+    ```JavaScript
+    describe('testModule', () => {
+      it('TestFunction', () => {
+        //...
+        });
+
+      it('innerFunction', () => {
+        //...
+      });
+    });
+    ```
+
+
+### ── HOOK  
+
+- 在 Jest 測試框架中有提供鉤子函數，beforeEach & afterEach。  
+    - beforeEach & afterEach 的觸發會限制在 describe 群組內。  
+<br>
+- **beforeEach**  
+    - 函數會在每個測試運行**之前**運行一次。  
+    - 通常用於設置測試的前置條件。  
+    - 例如：初始化測試數據、創建模擬對象等  
+    ```JavaScript
+    beforeEach(() => {
+      // 在每個測試運行之前執行的操作
+      // 初始化測試數據、創建模擬對象等
+    });
+    ```
+<br>
+- **afterEach**  
+    - 函數會在每個測試運行**之後**運行一次。  
+    - 通常用於清理測試過程中可能產生的副作用。  
+    - 例如：重置測試數據、銷毀模擬對象等。  
+    ```JavaScript
+    afterEach(() => {
+      // 在每個測試運行之後執行的操作
+      // 清理測試過程中可能產生的副作用、重置測試數據、銷毀模擬對象等
+    });
+    ```
+
+
+### ── 監視 & 斷言  
+
+- 而該怎麼驗證測試是否正確，Jest 提供 jest.spyOn() 函式。  
+
+    - jest.spyOn() 用於創建一個對特定物件的方法進行模擬的 Spy（間諜）。  
+
+    - jest.spyOn() 也可以監視一個物件的特定方法，記錄它的呼叫情況以及接收到的參數。  
+    
+        ```JavaScript
+        // Module.test.js
+        // 引入被測試的模組
+        const Module = require('./Module');
+
+        // 使用 jest.spyOn 監視 TestFunction 方法
+        const spy = jest.spyOn(Module, 'TestFunction');
+
+        // 呼叫 TestFunction 方法
+        Module.TestFunction();
+
+        // 斷言 TestFunction 方法被呼叫過
+        expect(spy).toHaveBeenCalled();
+
+        // 清除監視，恢復原始方法
+        spy.mockRestore();
+        ```
+<br>
+- 在上述 jest.spyOn 監視物件方法後，可以使用 Jest 提供的 expect() 斷言函式來進行測試  
+<br>
+    - **返回值的斷言方法**  
+        1. expect().toBe(value): 斷言實際值是否與預期值完全相等。  
+        2. expect().toEqual(value): 斷言兩個對象是否在值上相等（對象的所有屬性和屬性值相等）。  
+        3. expect().toMatch(pattern): 斷言字符串是否與正則表達式匹配。  
+        4. expect().toContain(item): 斷言某個集合（數組、Set 或類似對象）是否包含指定的元素。  
+        5. expect().toHaveLength(length): 斷言某個集合（數組、字符串或類似對象）的長度是否與預期值相等。  
+        6. expect().toHaveProperty(keyPath, value?): 斷言對象是否具有指定的屬性，並且可選地驗證屬性值是否與預期值相等。  
+        7. expect().toBeInstanceOf(constructor): 斷言對象是否是某個類的實例。  
+<br>
+    - **監視的斷言方法**  
+        1. toHaveBeenCalled(): 斷言被監視的方法是否被呼叫過。  
+        2. toHaveBeenCalledWith(arg1, arg2, ...): 斷言被監視的方法是否被指定的參數呼叫過。  
+        3. toHaveReturned(): 斷言被監視的方法是否有返回值。  
+        4. toHaveReturnedWith(value): 斷言被監視的方法是否有指定的返回值。  
+        5. toHaveLastReturnedWith(value): 斷言被監視的方法最後一次呼叫的返回值是否為指定值。  
+        6. toHaveBeenLastCalledWith(arg1, arg2, ...): 斷言被監視的方法最後一次呼叫時傳入的參數是否符合指定的值。  
+        7. toHaveBeenCalledTimes(number): 斷言被監視的方法被呼叫的次數是否符合指定的數量。  
+        8. toHaveBeenNthCalledWith(nthCall, arg1, arg2, ...): 斷言被監視的方法第 nth 次呼叫時傳入的參數是否符合指定的值。  
+
+
+### ── 模擬方法行為  
+
+- **mockReturnValue**  
+    - mockReturnValue 用於設置 mock 函數的返回值。它將覆蓋原始函數的返回值，無論函數的實際執行結果是什麼，都將返回被設置的值。  
+    - 通常與 jest.fn() 一起使用，用於創建一個新的 mock 函數並設置其返回值。  
+    - 當你想要模擬函數的返回值，但不關心函數的實際實現時，可以使用 mockReturnValue。  
+<br>
+- **mockImplementation**  
+    - mockImplementation 用於設置 mock 函數的實現。它將覆蓋原始函數的實現，無論原始函數的實際代碼是什麼，都將執行被設置的函數實現。  
+    - 通常與 jest.fn() 一起使用，用於創建一個新的 mock 函數並設置其實現。  
+    - 當你想要模擬函數的實現，並指定特定的行為或邏輯時，可以使用 mockImplementation。  
+<br>
+- 當測試某個方法時，該方法內部調用了其他方法並依賴其回傳值時，使用模擬回傳值的方法來測試。  
+    - 隔離被測試方法的行為，專注於測試它的功能，而不需要依賴其他方法的實際實現。  
+    - 可以使測試更加獨立和可靠，並且在測試失敗時更容易定位問題。  
+
+    ```JavaScript
+    // Module.js
+    function TestFunction() {
+      // 假設 TestFunction 內部調用了 innerFunction 方法
+      const value = innerFunction();
+      return value;
+    }
+
+    function innerFunction() {
+      //...內部處理邏輯
+    }
+
+    module.exports = {
+      TestFunction: TestFunction,
+      innerFunction: innerFunction
+    };
+    ```
+    
+    ```JavaScript
+    // Module.test.js
+    const Module = require('./Module');
+
+    // 模擬 innerFunction 的返回值
+    const innerSpy = jest.spyOn(Module, 'innerFunction').mockReturnValue('jensen');
+
+    // 使用 jest.spyOn 監視 TestFunction 方法
+    const spy = jest.spyOn(Module, 'TestFunction');
+
+    // 調用 TestFunction 方法
+    const result = Module.TestFunction();
+
+    // 斷言方法的返回值是否正確
+    expect(result).toBe('jensen');
+
+    // 清除監視
+    spy.mockRestore();
+    innerSpy.mockRestore();
+    ```
+
+
+### ── 清除 & 恢復  
+- 在測試結束後要清除監視，恢復原始方法，避免引響其他測試，確保測試獨立性。  
+
+    1. jest.clearAllMocks(): 清除所有模擬函數的調用信息，包括調用次數、傳入的參數等，但不還原模擬函數的行為。  
+    2. jest.clearAllTimers(): 清除所有計時器的設置，包括 setTimeout、setInterval 等。  
+    3. jest.resetAllMocks(): 重置所有模擬函數的狀態，包括還原它們的行為以及清除調用信息。  
+    4. jest.resetModules(): 重置所有模組的狀態，將它們從快取中卸載並重新加載，使它們回到初始狀態。  
+    5. jest.restoreAllMocks(): 還原所有使用 jest.spyOn 創建的模擬函數的原始實現。  
+    6. jest.runOnlyPendingTimers(): 立即執行所有處於待定狀態的計時器，而不需要等待真實的時間過去。  
+    7. jest.advanceTimersByTime(ms): 快進指定時間(ms)以觸發計時器。  
+
+---
+
+## Reference  
+- [Jest Docs](https://jestjs.io/docs/getting-started)  
+- [Jest Methods](https://jestjs.io/docs/api#methods)  
