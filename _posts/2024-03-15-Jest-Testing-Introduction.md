@@ -159,7 +159,6 @@ tags:
 
     module.exports = calculator;
     ```
-    - [(測試檔案如何使用被測試原始碼的內部方法)]({{ site.baseurl }}/testing/2024/03/22/Jest-Testing-Importing-and-Customizing-Modules.html#h--引入外部依賴)  
 <br>
 3. 再 tests/ 路徑下，新增名為 calculator.test.js 的測試檔案。  
     - test_project/  
@@ -189,8 +188,6 @@ tags:
       });
     });
     ```
-    - [(如何撰寫測試案例)](#-測試案例)  
-    - [(如何驗證測試結果)](#-監視--斷言)  
 
 
 ### ─ 如何運行測試  
