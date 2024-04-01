@@ -9,6 +9,7 @@ banner:
   opacity: 0.9
 categories: Testing
 tags:
+  - Jest
   - Test
   - Node.js
   - JavaScript
