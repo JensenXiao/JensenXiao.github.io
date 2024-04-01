@@ -23,7 +23,7 @@ tags:
 
 ### ─ 引入模組  
 
--  若是環境相關的引用可以另外寫一隻 setupTests.js 在裡面做全域宣告（global.）的方式，並在上一篇 Jest Testing 中提到的 package.json 裡設定，能夠在執行每個測試檔案前先執行 setupTests.js 做 initial。  
+-  若是環境相關的引用可以另外寫一隻 setupTests.js 在裡面做全域宣告（global.）的方式，並在上一篇 [Jest Testing - Introduction]({{ site.baseurl }}/testing/2024/03/15/Jest-Testing-Introduction.html#h--測試相關配置) 中提到的 package.json 裡設定，能夠在執行每個測試檔案前先執行 setupTests.js 做 initial。  
 
 - Jest 測試框架，需要使用的模組需要透過 npm 安裝  
     - 例如：jquery、kendo-ui、i18next  
