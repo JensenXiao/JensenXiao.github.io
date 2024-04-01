@@ -1,8 +1,8 @@
 ---
 layout: post
-title: Jest Testing for DOM manipulation
+title: Jest Testing - Importing and Customizing Modules
 date: 2024-03-22
-subtitle: How to write test case of unit testing for DOM manipulation.
+subtitle: How to importing and customizing modules for writing test case of unit testing.
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/Jest.png'
@@ -17,13 +17,13 @@ tags:
 
 - 在 Jest 測試框架中，不具備網頁環境。  
 
-- 對於網頁操作需要用到的 Library ，需要用引入模組的方式使其能夠正常運作。  
+- 對於測試需要用到的 Library ，需要用引入模組的方式使測試能夠正常運作。  
 
 - 而若需要對網頁做 DOM manipulation ，需要用模擬的方式創建 DOM 環境。  
 
-### ── 引入模組  
+### ─ 引入模組  
 
--  若是環境相關的引用可以另外寫一隻 setupTests.js 在裡面做全域宣告（global.）的方式，並在上一篇 [Jest Testing](https://jensenxiao.github.io/testing/2024/03/15/Jest-Testing.html) 中提到的 package.json 裡設定，能夠在執行每個測試檔案前先執行 setupTests.js 做 initial。  
+-  若是環境相關的引用可以另外寫一隻 setupTests.js 在裡面做全域宣告（global.）的方式，並在上一篇 [Jest Testing]({{ site.baseurl }}/testing/2024/03/15/Jest-Testing-Introduction.html#h--測試相關配置) 中提到的 package.json 裡設定，能夠在執行每個測試檔案前先執行 setupTests.js 做 initial。  
 
 - Jest 測試框架，需要使用的模組需要透過 npm 安裝  
     - 例如：jquery、kendo-ui、i18next  
@@ -38,7 +38,7 @@ tags:
     global.jQuery = jquery;
     global.$ = jquery;
     ```
-<br>
+
 - **kendo-ui**  
     - 要在 Jest 測試中使用 Kendo UI 提供的相關功能進行測試，需要引用 @progress/kendo-ui，而在 kendo 模組用會用到 TextEncoder 與 TextDecoder，所以也要引入。  
     
@@ -48,7 +48,7 @@ tags:
     global.TextDecoder = require('util').TextDecoder;
     global.kendo = require('@progress/kendo-ui');
     ```
-<br>
+
 - **i18next**  
     - 將 i18next 函數引用並全域宣告  
     
@@ -59,7 +59,7 @@ tags:
     ```
     
 
-### ── 引入外部依賴  
+### ─ 引入外部依賴  
 
 - 使用 require 引入模組  
 <br>
@@ -81,7 +81,7 @@ tags:
           TestFunction: TestFunction
         };
         ```
-<br>
+
    - 可以在測試的檔案中引入 Module.js 並使用 TestFunction。  
    
         ```JavaScript
@@ -90,7 +90,7 @@ tags:
 
         Module.TestFunction(); // 調用 TestFunction 函數
         ```
-<br>
+
    - 或是在 setupTests.js 進入點全域載入。  
    
         ```JavaScript
@@ -100,7 +100,7 @@ tags:
         // Module.test.js
         Module.TestFunction(); // 調用 TestFunction 函數
         ```
-<br>
+
    - 而要讓測試檔案可以正確找到模組，需要在 package.json 文件中添加 moduleDirectories 設置，模組放置的路徑。  
    
        ```XML
@@ -110,7 +110,7 @@ tags:
             ]
         },
        ```
-<br>
+
 - 或是使用 fs.readFileSync 與 eval 讀取並執行檔案 (這個方式無法追蹤覆蓋率)。  
 <br>
     - 不包成模組可以用 Node.js 的 fs 模組來讀取指定路徑的 JavaScript，並使用 eval 函數將其執行。  
@@ -124,7 +124,7 @@ tags:
         ```
    
     
-### ── 模擬 DOM 環境  
+### ─ 模擬 DOM 環境  
 
 - Jest 使用 Node.js 環境來執行測試，在測試運行時沒有真正的 DOM 環境可供測試 DOM 相關的程式碼。  
 
@@ -137,7 +137,7 @@ tags:
             "testEnvironment": "jest-environment-jsdom"
         },
         ```
-<br>
+
 - 引入 jsdom ，並 mock 環境以便使用 DOM API。  
 
     ```JavaScript
@@ -154,14 +154,12 @@ tags:
     ```
 
 
-### ── 模擬 window  
+### ─ 模擬 window  
 
-- 在測試中有些會用到 window 方法，這邊用模擬的 window 方法來代替真實的 window 方法。  
-<br>
-    - 利用 Jest 提供的 jest.fn()，建立一個模擬函式。  
+- 在前端測試中有些方法會用到 window 方法，這邊利用 Jest 提供的 jest.fn()，建立 window 的模擬方法。  
     
-    - 設置 global.window.close 為一個模擬函式，當在測試中呼叫 window.close() 時，實際上是呼叫了這個模擬函式。  
-
+    - 例如設置 global.window.close 為一個模擬函式，當在測試中呼叫 window.close() 時，實際上是呼叫了這個模擬函式。  
+    
         ```JavaScript
         // setupTests.js
         global.window.close = jest.fn();
@@ -177,4 +175,4 @@ tags:
 
 ## Reference  
 - [Jest Docs](https://jestjs.io/docs/getting-started)  
-- [Jest Methods](https://jestjs.io/docs/api#methods)  
+- [Jest Mock Functions](https://jestjs.io/docs/mock-functions)  
