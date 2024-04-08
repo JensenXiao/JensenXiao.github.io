@@ -1,12 +1,15 @@
 ---
 layout: post
 title: Jest Testing - Importing and Customizing Modules
+keywords: [Jest, Test, Node.js, JavaScript]
 date: 2024-03-22
 subtitle: How to importing and customizing modules for writing test case of unit testing.
+description: How to importing and customizing modules for writing test case of unit testing.
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/Jest.png'
   opacity: 0.9
+image: 'assets/images/banners/Jest.png'
 categories: Testing
 tags:
   - Jest

@@ -1,12 +1,15 @@
 ---
 layout: post
 title: EUDC Characters in Aspose.Words
+keywords: [Windows, Form, EUDC, C Sharp, Aspose]
 date: 2024-02-16
 subtitle: How to use User-Defined Characters (EUDC) in Aspose.Words
+description: How to use User-Defined Characters (EUDC) in Aspose.Words
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/AsposeWords.png'
   opacity: 0.9
+image: 'assets/images/banners/AsposeWords.png'
 categories: Markdown
 tags:
   - Windows

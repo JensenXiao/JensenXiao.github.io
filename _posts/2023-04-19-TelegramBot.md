@@ -1,12 +1,15 @@
 ---
 layout: post
 title: Telegram Bot
+keywords: [Message, Node.js, Node, Telegram Bot, Telegram]
 date: 2023-04-19
 subtitle: How to use Telegram Bot in Node.js
+description: How to use Telegram Bot in Node.js
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/Telegram-Coin-Logo.jpg'
   opacity: 0.9
+image: 'assets/images/banners/Telegram-Coin-Logo.jpg'
 categories: Markdown
 tags:
   - Message

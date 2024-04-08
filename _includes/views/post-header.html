@@ -8,6 +8,10 @@
       <i class="fa fa-calendar"></i> {{ page.date | date: date_format }}
     </time>
 
+    {% if page.keywords %}
+    <meta name="keywords" content="{{ page.keywords | join: ','}}">
+    {% endif %}
+    
     {%- if page.author -%}
     <span class="post-author left-vsplit"><i class="fa fa-pencil"></i> {{ page.author | escape }}</span>
     {%- endif -%}

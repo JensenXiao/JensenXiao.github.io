@@ -1,12 +1,15 @@
 ---
 layout: post
 title: Self-signed certificate
+keywords: [Security, TLS/SSL, OpenSSL, Self-signed, Certificate]
 date: 2023-6-21
 subtitle: Generating a self-signed certificate using OpenSSL
+description: Generating a self-signed certificate using OpenSSL
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/OpenSSL_logo.png'
   opacity: 0.9
+image: 'assets/images/banners/OpenSSL_logo.png'
 categories: Security
 tags:
   - Security

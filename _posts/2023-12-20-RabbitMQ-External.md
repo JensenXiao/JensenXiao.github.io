@@ -1,12 +1,15 @@
 ---
 layout: post
 title: RabbitMQ with External Auth
+keywords: [Security, TLS/SSL, Message, C Sharp, RabbitMQ, External Auth]
 date: 2023-12-20
 subtitle: How to use External Authentication on RabbitMQ 
+description: How to use External Authentication on RabbitMQ 
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/RabbitMQ_logo.png'
   opacity: 0.9
+image: 'assets/images/banners/RabbitMQ_logo.png'
 categories: Security
 tags:
   - Security

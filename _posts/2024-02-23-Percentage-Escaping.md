@@ -1,12 +1,15 @@
 ---
 layout: post
 title: SQL Percentage Sign Escaping
+keywords: [SQL, C Sharp, Oracle, Microsoft SQL Server]
 date: 2024-02-23
 subtitle: How to escape a percentage sign in SQL
+description: How to escape a percentage sign in SQL
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/Oracle-SQLServer.png'
   opacity: 0.9
+image: 'assets/images/banners/Oracle-SQLServer.png'
 categories: Markdown
 tags:
   - SQL

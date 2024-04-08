@@ -26,6 +26,7 @@ header_pages:
   - about.md
 
 paginate: 5
+permalink: /:categories/:title
 
 markdown: kramdown
 

@@ -1,12 +1,15 @@
 ---
 layout: post
 title: LDAP Injection
+keywords: [Security, Checkmarx, C Sharp, LDAP]
 date: 2024-02-29
 subtitle: How to Prevent LDAP Injection
+description: How to Prevent LDAP Injection
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/LDAP-Injection.png'
   opacity: 0.9
+image: 'assets/images/banners/LDAP-Injection.png'
 categories: Security
 tags:
   - Security

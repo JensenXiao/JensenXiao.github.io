@@ -1,12 +1,15 @@
 ---
 layout: post
 title: Jest Testing - Introduction
+keywords: [Jest, Test, Node.js, JavaScript]
 date: 2024-03-15
 subtitle: How to create a test cases in Jest
+description: How to create a test cases in Jest
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/Jest.png'
   opacity: 0.9
+image: 'assets/images/banners/Jest.png'
 categories: Testing
 tags:
   - Jest

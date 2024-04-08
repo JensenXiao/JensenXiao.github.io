@@ -1,12 +1,15 @@
 ---
 layout: post
 title: Jest Testing - Axios
+keywords: [Jest, Test, Node.js, JavaScript]
 date: 2024-03-29
 subtitle: How to writing test case of unit testing for Axios API calls.
+description: How to writing test case of unit testing for Axios API calls.
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/Jest.png'
   opacity: 0.9
+image: 'assets/images/banners/Jest.png'
 categories: Testing
 tags:
   - Jest
