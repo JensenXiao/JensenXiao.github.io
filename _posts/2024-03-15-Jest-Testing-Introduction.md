@@ -26,6 +26,22 @@ tags:
 - 在這個專案中，順手記錄了一些 Jest 框架應用，以及前端測試可能會用到的方法。  
 
 
+### ─ 如何安裝 Jest  
+
+- 系統環境中需要先安裝 Node.js 和 npm。   
+  
+- 終端機在你的專案路徑下輸入初始化 npm 的指令。   
+	- npm init -y  
+<br>  
+
+- 安裝 Jest  
+	- npm install --save-dev jest  
+<br>  
+
+- 使用 npm 輸入安裝 Jest 的指令之後，除了在 node_module 中加入 jest 模組之外，也會在 package.json 文件中加入一些基本的設定。 
+![安裝 Jest](https://hackmd.io/_uploads/r1s_QYfwA.png)   
+
+
 ### ─ 專案結構  
 
 以下是 Jest 專案常見的結構。  
@@ -55,6 +71,9 @@ tags:
 - tests/：這裡存放針對 src/ 內程式碼撰寫的測試案例文件。  
 - coverage/：這裡存放測試後生成的程式碼覆蓋率報告文件。  
 - package.json：這個檔案包含了與測試相關的配置設定。  
+
+那 setupTests.js 則是你在配置的時候，如果有定義 setupFiles，那你就可以在這支檔案裡面做一些測試前的準備工作。  
+![專案結構](https://hackmd.io/_uploads/r1JkBKMDA.png)  
 
 
 ### ─ 測試相關配置  
