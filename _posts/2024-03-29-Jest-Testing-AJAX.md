@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Jest Testing - AJAX
-keywords: [Jest, Test, Node.js, JavaScript]
+keywords: [Jest, Test, Node.js, JavaScript, Ajax]
 date: 2024-03-29
 subtitle: How to writing test case of unit testing for AJAX API calls.
 description: How to writing test case of unit testing for AJAX API calls.
@@ -16,6 +16,7 @@ tags:
   - Test
   - Node.js
   - JavaScript
+  - Ajax
 --- 
 ## AJAX 方法如何測試  
 
