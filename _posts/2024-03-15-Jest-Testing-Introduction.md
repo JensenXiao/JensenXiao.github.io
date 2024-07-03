@@ -39,7 +39,7 @@ tags:
 <br>  
 
 - 使用 npm 輸入安裝 Jest 的指令之後，除了在 node_module 中加入 jest 模組之外，也會在 package.json 文件中加入一些基本的設定。 
-![安裝 Jest](https://hackmd.io/_uploads/r1s_QYfwA.png)   
+![安裝 Jest](https://hackmd.io/_uploads/r1s_QYfwA.png)  
 
 
 ### ─ 專案結構  
