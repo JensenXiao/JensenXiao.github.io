@@ -1,10 +1,10 @@
 ---
 layout: post
-title: Jest Testing - Axios
+title: Jest Testing - AJAX
 keywords: [Jest, Test, Node.js, JavaScript]
 date: 2024-03-29
-subtitle: How to writing test case of unit testing for Axios API calls.
-description: How to writing test case of unit testing for Axios API calls.
+subtitle: How to writing test case of unit testing for AJAX API calls.
+description: How to writing test case of unit testing for AJAX API calls.
 author: Jensen Hsiao
 banner:
   image: 'assets/images/banners/Jest.png'
@@ -17,11 +17,11 @@ tags:
   - Node.js
   - JavaScript
 --- 
-## Axios 方法如何測試
+## AJAX 方法如何測試  
 
-在測試方法內部如果使用了 Axios 請求，但因為測試的重點在於方法內部邏輯的實作，所以並不需要每次測試都實際呼叫 API。  
+在測試方法內部如果使用了 AJAX 請求，但因為測試的重點在於方法內部邏輯的實作，所以並不需要每次測試都實際呼叫 API。  
 
-- 假設有一個被測試方法使用到 Axios 請求。  
+- 假設有一個被測試方法使用到 Axios 來發送 AJAX 請求。  
     ```Javascript
     // axios.js
     const axios = require('axios');
@@ -41,7 +41,7 @@ tags:
 
 ### ─ 模擬方法  
 #### ── jest.mock 模擬  
-- 使用 jest.mock 模擬 axios，然後使用 axios.get.mockResolvedValue() 模擬 axios 回傳值。  
+- 使用 jest.mock 模擬 axios，然後使用 axios.get.mockResolvedValue() 模擬 axios 回傳值，或是使用 mockRejectedValue() 來模擬回傳錯誤。  
 <br>
     - 範例 :  
         ```Javascript

@@ -59,6 +59,8 @@ tags:
 
 ### ─ 測試相關配置  
 
+#### ─── package.json  
+
 - Jest 的 package.json 可以設定測試的相關配置，這些配置通常包括測試的入口文件、測試覆蓋率報告、以及其他一些自定義配置。  
 
 ```json
@@ -142,6 +144,33 @@ tags:
 <br>
 - 上述是 package.json 配置中的一些常見選項，根據具體需求，可以在加入其他配置。  
 
+#### ─── jest.config.js  
+
+- Jest 運行測試時，會從專案目錄開始尋找 jest.config.js ，如果沒有找到，就會查看上面說到的 package.json 其中是否包含 jest 配置區塊。  
+
+- 而使用 JavaScript 來定義配置，可以使用一些變數、條件邏輯、或是可以直接使用 require 載入其他模組當作設置等等，比起簡單的 JSON 格式可以更靈活的配置你的測試環境，你可以根據不同的專案需求或結構，來選擇適合的配置方式。  
+
+```JavaScript
+// jest.config.js
+module.exports = {
+    rootDir: "../",
+    roots: ["<rootDir>/test_project"],
+    setupFiles: ["<rootDir>/test_project/setupTests.js"],
+    testEnvironment: "jsdom",
+    testMatch: [
+        "**/__tests__/**/*.js", 
+        "**/?(*.)+(spec|test).js"
+    ],
+    coverageDirectory: "<rootDir>/test_project/Coverage/",
+    reporters: [
+        "default",
+        [require.resolve('jest-junit'), {
+            "outputDirectory": "<rootDir>/test_project/Coverage/",
+            "outputName": "jest-junit.xml"
+        }]
+    ]
+};
+```
 
 ### ─ 新增測試檔案  
 
@@ -413,7 +442,10 @@ describe('testModule', () => {
 
 ### ─ Command  
 - 當執行測試之後在在 Terminal 畫面上會顯示目前被測程式，測試到的覆蓋率 %。  
-![覆蓋率](https://hackmd.io/_uploads/B1RkOZOy0.png)  
+![覆蓋率](https://hackmd.io/_uploads/B1RkOZOy0.png)    
+
+- 當中可以看到測試案例是成功或是失敗，最後會統計整體與個別的覆蓋率資訊。  
+![終端機覆蓋率](https://hackmd.io/_uploads/rJmZFOfvR.png)  
 
 ### ─ HTML  
 - 執行測試完畢的同時在 Coverage 資料夾下的 lcov-report 裡，也會生成一個 index.html。  
