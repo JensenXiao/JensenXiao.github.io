@@ -1,0 +1,1778 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://jensenxiao.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://jensenxiao.github.io/" rel="alternate" type="text/html" /><updated>2024-07-03T09:03:59+00:00</updated><id>https://jensenxiao.github.io/feed.xml</id><title type="html">Jensen Hsiao’s Blog</title><subtitle>Documents my learning experiences.</subtitle><author><name>Jensen Hsiao</name></author><entry><title type="html">Jest Testing - Asynchronous</title><link href="https://jensenxiao.github.io/testing/Jest-Testing-Asynchronous" rel="alternate" type="text/html" title="Jest Testing - Asynchronous" /><published>2024-04-12T00:00:00+00:00</published><updated>2024-04-12T00:00:00+00:00</updated><id>https://jensenxiao.github.io/testing/Jest-Testing-Asynchronous</id><content type="html" xml:base="https://jensenxiao.github.io/testing/Jest-Testing-Asynchronous"><![CDATA[<h2 id="asynchronous-非同步程式測試">Asynchronous 非同步程式測試</h2>
+
+<ul>
+  <li>
+    <p>在測試方法時內部可能有 Callbacks 或 Promise 之類可能是非同步情況下，有可能會出現測試通過但報告卻顯示沒有被測試到。</p>
+  </li>
+  <li>假設有一個被測試檔案中有非同步的函數方法。
+    <pre><code class="language-Javascript">  // asynchronous.js
+  const Asynchronous = {
+      // 使用 Callbacks 測試的非同步函數
+      fetchDataWithCallback(callback) {
+          setTimeout(() =&gt; {
+              callback('This is a callback');
+          }, 3000);
+        },
+
+      // 使用 Promise 測試的非同步函數
+      fetchDataWithPromise() {
+          return new Promise((resolve, reject) =&gt; {
+              setTimeout(() =&gt; {
+                  resolve('This is a Promise');
+              }, 3000);
+          });
+      }
+  };
+
+  module.exports = Asynchronous;
+</code></pre>
+    <p><br /></p>
+  </li>
+  <li>接著寫了一個測試案例來呼叫被測試的方法，然後接著驗證方法回傳的資料是不是你所預期的。
+    <pre><code class="language-Javascript">  // asynchronous.test.js
+  const Asynchronous = require('asynchronous');
+
+  describe('Asynchronous Tests', () =&gt; {
+      // 測試 Callbacks
+      test('Testing Callbacks', () =&gt; {
+          Asynchronous.fetchDataWithCallback((data) =&gt; {
+              expect(data).toBe('This is a callback');
+          });
+      });
+
+      // 測試 Promise
+      test('Testing Promise', () =&gt; {
+          Asynchronous.fetchDataWithPromise().then((data) =&gt; {
+              expect(data).toBe('This is a Promise');
+          });
+      });
+  });
+</code></pre>
+    <p><br /></p>
+  </li>
+  <li>那這邊當你寫好測試之後實際去執行測試，也會看到測試如預期的通過了。</li>
+</ul>
+
+<p><img src="https://hackmd.io/_uploads/HkdjZ2vkC.png" alt="非同步測試通過" /><br />
+<br /></p>
+
+<ul>
+  <li>但是這時候會發現測試顯示通過了，但是覆蓋率的數字卻沒有變化或是變化很少，這個時候如果你去看詳細的覆蓋率報告會看到，非同步相關的程式碼並沒有被測試覆蓋到。</li>
+</ul>
+
+<p><img src="https://hackmd.io/_uploads/Hk5sjtzvR.png" alt="非同步測試" /><br />
+<br /></p>
+
+<ul>
+  <li>這是因為 Jest 的測試運行機制，在執行測試時它 <strong>不會</strong> 等待測試函數內的所有非同步操作完成，而是認為測試已經完成，並測試通過，針對這種情況在測試時可以針對非同步的方法強制等待回傳值，並對其驗證。</li>
+</ul>
+
+<h3 id="-callbacks">─ Callbacks</h3>
+
+<ul>
+  <li>在 test ( ) 內使用 done argument，不要用 empty argument，Jest 就會等到 done callback 被呼叫時才會結束測試。
+    <pre><code class="language-Javascript">  // asynchronous.test.js
+  // 測試 Callbacks
+  test('Testing Callbacks', (done) =&gt; {
+      Asynchronous.fetchDataWithCallback((data) =&gt; {
+          try {
+              expect(data).toBe('This is a callback');
+              done(); // 在測試完成時調用 done
+          } catch (error) {
+              done(error); // 如果出現錯誤，也調用 done 並傳遞錯誤
+          }
+      });
+  }, 5000); // 設置測試超時時間為 5000 毫秒（5 秒）
+</code></pre>
+  </li>
+</ul>
+
+<h3 id="-promise">─ Promise</h3>
+
+<ul>
+  <li>在 Promise 多種方式可以使用
+    <ol>
+      <li>使用 return 等待回傳的 promise 被 resolve 才會結束測試。</li>
+      <li>使用 async / await 來測試 Promise。</li>
+      <li>在 expect 中使用 .resolves / .rejects matcher。</li>
+    </ol>
+
+    <pre><code class="language-Javascript">  // asynchronous.test.js
+	
+  // Using return
+  test('Testing Promis', () =&gt; {
+      return Asynchronous.fetchDataWithPromise().then((data) =&gt; {
+          expect(data).toBe('This is a Promise');
+  });
+
+  // Using async/await
+  test('Testing Promise using async/await', async () =&gt; {
+      const data = await Asynchronous.fetchDataWithPromise();
+      expect(data).toBe('This is a Promise');
+  });
+		
+  // Using .resolves matcher
+  test('Testing Promise with return', () =&gt; {
+      return expect(Asynchronous.fetchDataWithPromise()).resolves.toBe('This is a Promise');
+  });
+</code></pre>
+    <p><br /></p>
+  </li>
+  <li>也可以把不同的方法搭配一起使用。
+    <ul>
+      <li>例如 async/await &amp; .resolves matcher
+        <pre><code class="language-Javascript">  // asynchronous.test.js
+  test('Testing Promise using async/await &amp; .resolves matcher', async () =&gt; {
+      await expect(Asynchronous.fetchDataWithPromise()).resolves.toBe('This is a Promise');
+  });
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="-result">─ Result</h3>
+
+<ul>
+  <li>當使用前面提到的任何一種方法來修改測試案例之後，再去查看覆蓋率報告，就可以發現那些非同步的程式碼，都有確實被測試覆蓋到了。</li>
+</ul>
+
+<p><img src="https://hackmd.io/_uploads/B1F1JqGwA.png" alt="非同步測試成功" /></p>
+
+<hr />
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://jestjs.io/docs/getting-started">Jest Docs</a></li>
+  <li><a href="https://jestjs.io/docs/expect">Jest Expect</a></li>
+  <li><a href="https://jestjs.io/docs/api#methods">Jest Methods</a></li>
+  <li><a href="https://jestjs.io/docs/mock-functions">Jest Mock Functions</a></li>
+  <li><a href="https://jestjs.io/docs/asynchronous">Jest Testing Asynchronous</a></li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Testing" /><category term="Jest" /><category term="Test" /><category term="Node.js" /><category term="JavaScript" /><category term="Asynchronous" /><summary type="html"><![CDATA[How to writing test case of unit testing for Callbacks & Promise calls.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Jest Testing - XMLHttpRequest</title><link href="https://jensenxiao.github.io/testing/Jest-Testing-XMLHttpRequest" rel="alternate" type="text/html" title="Jest Testing - XMLHttpRequest" /><published>2024-04-05T00:00:00+00:00</published><updated>2024-04-05T00:00:00+00:00</updated><id>https://jensenxiao.github.io/testing/Jest-Testing-XMLHttpRequest</id><content type="html" xml:base="https://jensenxiao.github.io/testing/Jest-Testing-XMLHttpRequest"><![CDATA[<h2 id="xmlhttprequest-如何模擬">XMLHttpRequest 如何模擬</h2>
+
+<p>在被測試方法中，如果使用到了 XMLHttpRequest 物件來發送 HTTP 請求，因為測試的重點在於方法內部邏輯的實作，所以並不需要在測試中實際發送 HTTP 請求。</p>
+
+<ul>
+  <li>假設有一個被測試方法使用到 XMLHttpRequest 物件來發送 HTTP 請求。
+    <pre><code class="language-Javascript">  const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+
+  function fetchData(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        callback(null, JSON.parse(xhr.responseText));
+      } else {
+        callback(new Error('Failed to load data: ' + xhr.status));
+      }
+    };
+    xhr.onerror = function() {
+      callback(new Error('Network error'));
+    };
+    xhr.send();
+  }
+
+  module.exports = fetchData;
+</code></pre>
+  </li>
+  <li>其中他會透過 XMLHttpRequest 來發送 HTTP 請求，從指定的 URL 獲取數據。<br />
+<img src="https://hackmd.io/_uploads/SJdRndMwC.png" alt="XMLHttpRequest" /></li>
+</ul>
+
+<h3 id="-模擬方法">─ 模擬方法</h3>
+
+<h4 id="-nock-模擬">── nock 模擬</h4>
+<ul>
+  <li>這邊可以透過 nock 來模擬 HTTP 請求，這樣可以在不真正發送網絡請求的情況下測試程式碼。<br />
+<br />
+    <ul>
+      <li>範例 :
+        <pre><code class="language-Javascript">  const nock = require('nock');
+  const fetchData = require('./fetchData');
+
+  // 測試 fetchData 函數
+  test('測試 fetchData 是否能從 API 正確回傳數據', done =&gt; {
+    nock('https://api.example.com')
+      .get('/data')
+      .reply(200, JSON.stringify({ id: 1, name: 'Jensen' }));
+
+    fetchData('https://api.example.com/data', (err, data) =&gt; {
+      expect(err).toBeNull();
+      expect(data).toEqual({ id: 1, name: 'Jensen' });
+      done(); // 使用 done 來處理異步測試
+    });
+  });
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>當你有設置 nock 攔截之後，每當你的測試程式有請求被發送時，其中有對應到你所設置的 URL 和路徑上，就會被攔截並根據 .reply() 方法中你所預期的內容來回應。<br />
+<img src="https://hackmd.io/_uploads/SJZcpdzwC.png" alt="nock" /></li>
+</ul>
+
+<hr />
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://www.npmjs.com/package/nock?activeTab=readme">nock</a></li>
+  <li><a href="https://jestjs.io/docs/getting-started">Jest Docs</a></li>
+  <li><a href="https://jestjs.io/docs/expect">Jest Expect</a></li>
+  <li><a href="https://jestjs.io/docs/api#methods">Jest Methods</a></li>
+  <li><a href="https://jestjs.io/docs/mock-functions">Jest Mock Functions</a></li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Testing" /><category term="Jest" /><category term="Test" /><category term="Node.js" /><category term="JavaScript" /><summary type="html"><![CDATA[How to writing test case of unit testing for XMLHttpRequest calls.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Jest Testing - AJAX</title><link href="https://jensenxiao.github.io/testing/Jest-Testing-AJAX" rel="alternate" type="text/html" title="Jest Testing - AJAX" /><published>2024-03-29T00:00:00+00:00</published><updated>2024-03-29T00:00:00+00:00</updated><id>https://jensenxiao.github.io/testing/Jest-Testing-AJAX</id><content type="html" xml:base="https://jensenxiao.github.io/testing/Jest-Testing-AJAX"><![CDATA[<h2 id="ajax-方法如何測試">AJAX 方法如何測試</h2>
+
+<p>在測試方法內部如果使用了 AJAX 請求，但因為測試的重點在於方法內部邏輯的實作，所以並不需要每次測試都實際呼叫 API。</p>
+
+<ul>
+  <li>假設有一個被測試方法使用到 Axios 來發送 AJAX 請求。
+    <pre><code class="language-Javascript">  // axios.js
+  const axios = require('axios');
+
+  async function MockAxios() {
+      try {
+          const response = await axios.get('https://api.example.com/data');
+          return response.data;
+      } 
+      catch (error) {
+          throw error;
+      }
+  }
+        
+  module.exports = MockAxios;
+</code></pre>
+  </li>
+</ul>
+
+<h3 id="-模擬方法">─ 模擬方法</h3>
+<h4 id="-jestmock-模擬">── jest.mock 模擬</h4>
+<ul>
+  <li>使用 jest.mock 模擬 axios，然後使用 axios.get.mockResolvedValue() 模擬 axios 回傳值，或是使用 mockRejectedValue() 來模擬回傳錯誤。<br />
+<br />
+    <ul>
+      <li>範例 :
+        <pre><code class="language-Javascript">  // axios.test.js
+  const axios = require('axios');
+  const MockAxios = require('../src/axios');
+
+  jest.mock('axios');
+
+  describe('MockAxios with jest.mock', () =&gt; {
+      test('MockAxios returns data from API', async () =&gt; {
+          const mockData = { data: 'mock data' };
+          axios.get.mockResolvedValue(mockData);
+
+          const data = await MockAxios();
+
+          expect(data).toEqual('mock data');
+      });
+
+      test('MockAxios handles errors', async () =&gt; {
+          const errorMessage = 'Error fetching data';
+          axios.get.mockRejectedValue(new Error(errorMessage));
+
+          await expect(MockAxios()).rejects.toThrow(errorMessage);
+      });
+  });
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="-axios-mock-adapter-模擬">── axios-mock-adapter 模擬</h4>
+<ul>
+  <li>axios-mock-adapter 套件提供多種模擬 API 的行為。<br />
+<br />
+    <ul>
+      <li>模擬請求和回應：
+        <ul>
+          <li>可以使用 onGet、onPost、onPut、onDelete 等方法來模擬各種 HTTP 請求。</li>
+          <li>可以指定特定的 URL 和參數，以及對應的回傳數據或錯誤。<br />
+<br /></li>
+        </ul>
+      </li>
+      <li>設置回應狀態碼：
+        <ul>
+          <li>可以模擬不同的 HTTP 狀態碼，例如成功（200）、重定向（3xx）、客戶端錯誤（4xx）和服務器錯誤（5xx）等等。</li>
+        </ul>
+      </li>
+      <li>
+        <p><a href="https://www.npmjs.com/package/axios-mock-adapter">more</a>…</p>
+      </li>
+      <li>範例 :
+        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  npm <span class="nb">install </span>axios-mock-adapter
+</code></pre></div>        </div>
+
+        <pre><code class="language-Javascript">  // axios.test.js
+  const axios = require('axios');
+  const MockAdapter = require('axios-mock-adapter');
+
+  describe('MockAxios with axios-mock-adapter', () =&gt; {
+      let mock;
+
+      test('MockAxios returns data from API', async () =&gt; {
+          mock = new MockAdapter(axios);
+
+          const mockData = { data: 'mock data' };
+          mock.onGet('https://api.example.com/data').reply(200, mockData);
+
+          const data = await MockAxios();
+
+          expect(data).toEqual('mock data');
+          mock.restore();
+      });
+  });
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://jestjs.io/docs/getting-started">Jest Docs</a></li>
+  <li><a href="https://jestjs.io/docs/expect">Jest Expect</a></li>
+  <li><a href="https://jestjs.io/docs/api#methods">Jest Methods</a></li>
+  <li><a href="https://jestjs.io/docs/mock-functions">Jest Mock Functions</a></li>
+  <li><a href="https://www.npmjs.com/package/axios-mock-adapter">axios-mock-adapter</a></li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Testing" /><category term="Jest" /><category term="Test" /><category term="Node.js" /><category term="JavaScript" /><category term="Ajax" /><summary type="html"><![CDATA[How to writing test case of unit testing for AJAX API calls.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Jest Testing - Importing and Customizing Modules</title><link href="https://jensenxiao.github.io/testing/Jest-Testing-Importing-and-Customizing-Modules" rel="alternate" type="text/html" title="Jest Testing - Importing and Customizing Modules" /><published>2024-03-22T00:00:00+00:00</published><updated>2024-03-22T00:00:00+00:00</updated><id>https://jensenxiao.github.io/testing/Jest-Testing-Importing-and-Customizing-Modules</id><content type="html" xml:base="https://jensenxiao.github.io/testing/Jest-Testing-Importing-and-Customizing-Modules"><![CDATA[<h2 id="jest-外部依賴--模擬">Jest 外部依賴 ＆ 模擬</h2>
+
+<ul>
+  <li>
+    <p>在 Jest 測試框架中，不具備網頁環境。</p>
+  </li>
+  <li>
+    <p>對於測試需要用到的 Library ，需要用引入模組的方式使測試能夠正常運作。</p>
+  </li>
+  <li>
+    <p>而若需要對網頁做 DOM manipulation ，需要用模擬的方式創建 DOM 環境。</p>
+  </li>
+</ul>
+
+<h3 id="-引入模組">─ 引入模組</h3>
+
+<ul>
+  <li>
+    <p>若是環境相關的引用可以另外寫一隻 setupTests.js 在裡面做全域宣告（global.）的方式，並在上一篇 <a href="/testing/2024/03/15/Jest-Testing-Introduction.html#h--測試相關配置">Jest Testing - Introduction</a> 中提到的 package.json 裡設定，能夠在執行每個測試檔案前先執行 setupTests.js 做 initial。</p>
+  </li>
+  <li>Jest 測試框架，需要使用的模組需要透過 npm 安裝
+    <ul>
+      <li>例如：jquery、kendo-ui、i18next<br />
+<br /></li>
+    </ul>
+  </li>
+  <li><strong>jquery</strong>
+    <ul>
+      <li>Jest 使用 Node.js，而在 Node.js 中並沒有內建的 ﹩ 符號，它不會自動將 ﹩ 視為 jQuery。所以，為了在 Jest 測試中使用 ﹩ 符號來調用 jQuery 函數，你需要將 ﹩ 指派給 jQuery。</li>
+    </ul>
+
+    <pre><code class="language-JavaScript">  // setupTests.js
+  // 載入 jQuery 並指派 $ 使用 jquery 模組引用
+  const jquery = require('jquery');
+  global.jQuery = jquery;
+  global.$ = jquery;
+</code></pre>
+  </li>
+  <li><strong>kendo-ui</strong>
+    <ul>
+      <li>要在 Jest 測試中使用 Kendo UI 提供的相關功能進行測試，需要引用 @progress/kendo-ui，而在 kendo 模組用會用到 TextEncoder 與 TextDecoder，所以也要引入。</li>
+    </ul>
+
+    <pre><code class="language-JavaScript">  // setupTests.js
+  global.TextEncoder = require('util').TextEncoder;
+  global.TextDecoder = require('util').TextDecoder;
+  global.kendo = require('@progress/kendo-ui');
+</code></pre>
+  </li>
+  <li><strong>i18next</strong>
+    <ul>
+      <li>將 i18next 函數引用並全域宣告</li>
+    </ul>
+
+    <pre><code class="language-JavaScript">  // setupTests.js
+  const i18next = require('i18next');
+  global.i18next = i18next;
+</code></pre>
+  </li>
+</ul>
+
+<h3 id="-引入外部依賴">─ 引入外部依賴</h3>
+
+<ul>
+  <li>使用 require 引入模組<br />
+<br />
+    <ul>
+      <li>
+        <p>require 是 Node.js 中常見的引入模組的方式。</p>
+      </li>
+      <li>
+        <p>要將 JavaScript 檔案變成一個模組，需要將其中的功能進行封裝，然後透過 module.exports 將這些功能暴露給其他程式碼。</p>
+      </li>
+      <li>
+        <p>這樣其他程式碼就可以通過 require 或 import 的方式引入你的模組並使用其中的功能。</p>
+      </li>
+      <li>
+        <p>以下舉例，定義了一個函數 myFunction，並使用 module.exports 將這個函數暴露出來。</p>
+
+        <pre><code class="language-JavaScript">  // Module.js
+  function TestFunction() {
+    console.log('This is TestFunction');
+  }
+
+  module.exports = {
+    TestFunction: TestFunction
+  };
+</code></pre>
+      </li>
+      <li>
+        <p>可以在測試的檔案中引入 Module.js 並使用 TestFunction。</p>
+
+        <pre><code class="language-JavaScript">   // Module.test.js
+   const Module = require('./Module');
+
+   Module.TestFunction(); // 調用 TestFunction 函數
+</code></pre>
+      </li>
+      <li>
+        <p>或是在 setupTests.js 進入點全域載入。</p>
+
+        <pre><code class="language-JavaScript">   // setupTests.js
+   global.Module = require('./Module');
+
+   // Module.test.js
+   Module.TestFunction(); // 調用 TestFunction 函數
+</code></pre>
+      </li>
+      <li>
+        <p>而要讓測試檔案可以正確找到模組，需要在 package.json 文件中添加 moduleDirectories 設置，模組放置的路徑。</p>
+
+        <pre><code class="language-XML">   "jest": {
+       "moduleDirectories": [
+         "../path/folder"
+       ]
+   },
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>或是使用 fs.readFileSync 與 eval 讀取並執行檔案 (這個方式無法追蹤覆蓋率)。<br />
+<br />
+    <ul>
+      <li>
+        <p>不包成模組可以用 Node.js 的 fs 模組來讀取指定路徑的 JavaScript，並使用 eval 函數將其執行。</p>
+
+        <pre><code class="language-JavaScript">  // setupTests.js
+  const path = require('path');
+  const fs = require('fs');
+  global.Module = fs.readFileSync(path.resolve(__dirname, '../path/folder/Module.js'), 'utf-8');
+  eval(global.Module);
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="-模擬-dom-環境">─ 模擬 DOM 環境</h3>
+
+<ul>
+  <li>
+    <p>Jest 使用 Node.js 環境來執行測試，在測試運行時沒有真正的 DOM 環境可供測試 DOM 相關的程式碼。</p>
+  </li>
+  <li>
+    <p>將 “testEnvironment”: “jest-environment-jsdom” 添加到 package.json 配置中，Jest 將會使用 JSDOM 來模擬一個瀏覽器環境。</p>
+
+    <ul>
+      <li>
+        <p>jest-environment-jsdom 提供了一個基於 jsdom 的模擬 DOM 環境，用於在 Node.js 中模擬瀏覽器環境進行測試。可以在執行測試時訪問 DOM 元素、執行 DOM 操作以及測試與 DOM 相關的程式碼，而無需實際打開瀏覽器。</p>
+
+        <pre><code class="language-XML">  "jest": {
+      "testEnvironment": "jest-environment-jsdom"
+  },
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>引入 jsdom ，並 mock 環境以便使用 DOM API。</p>
+
+    <pre><code class="language-JavaScript">  // setupTests.js
+  const jsdom = require('jsdom');
+  const { JSDOM } = jsdom;
+
+  // 模擬 DOM 環境
+  const dom = new JSDOM('&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;');
+  global.window = dom.window;
+  global.document = dom.window.document;
+  global.navigator = dom.window.navigator;
+  global.HTMLElement = dom.window.HTMLElement || class {};
+</code></pre>
+  </li>
+</ul>
+
+<h3 id="-模擬-window">─ 模擬 window</h3>
+
+<ul>
+  <li>
+    <p>在前端測試中有些方法會用到 window 方法，這邊利用 Jest 提供的 jest.fn()，建立 window 的模擬方法。</p>
+
+    <ul>
+      <li>
+        <p>例如設置 global.window.close 為一個模擬函式，當在測試中呼叫 window.close() 時，實際上是呼叫了這個模擬函式。</p>
+
+        <pre><code class="language-JavaScript">  // setupTests.js
+  global.window.close = jest.fn();
+  global.window.alert = jest.fn();
+  global.window.confirm = jest.fn();
+  Object.defineProperty(window, 'location', {
+    value: { href: 'http://example.com' },
+    writable: true,
+  });
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://jestjs.io/docs/getting-started">Jest Docs</a></li>
+  <li><a href="https://jestjs.io/docs/mock-functions">Jest Mock Functions</a></li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Testing" /><category term="Jest" /><category term="Test" /><category term="Node.js" /><category term="JavaScript" /><summary type="html"><![CDATA[How to importing and customizing modules for writing test case of unit testing.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Jest Testing - Introduction</title><link href="https://jensenxiao.github.io/testing/Jest-Testing-Introduction" rel="alternate" type="text/html" title="Jest Testing - Introduction" /><published>2024-03-15T00:00:00+00:00</published><updated>2024-03-15T00:00:00+00:00</updated><id>https://jensenxiao.github.io/testing/Jest-Testing-Introduction</id><content type="html" xml:base="https://jensenxiao.github.io/testing/Jest-Testing-Introduction"><![CDATA[<h2 id="jest-前端測試框架">Jest 前端測試框架</h2>
+
+<ul>
+  <li>
+    <p>目前在專案中希望能夠配合 CI/CD，以進行自動化測試。除了對後端進行自動化測試外，也希望能針對前端進行測試。</p>
+  </li>
+  <li>
+    <p>因此，我寫了一個使用 Jest 框架來建立前端測試環境的專案。未來各專案可以 clone 這份專案，並與 CI/CD 配合進行前端測試的開發。</p>
+  </li>
+  <li>
+    <p>在這個專案中，順手記錄了一些 Jest 框架應用，以及前端測試可能會用到的方法。</p>
+  </li>
+</ul>
+
+<h3 id="-如何安裝-jest">─ 如何安裝 Jest</h3>
+
+<ul>
+  <li>
+    <p>系統環境中需要先安裝 Node.js 和 npm。</p>
+  </li>
+  <li>終端機在你的專案路徑下輸入初始化 npm 的指令。
+    <ul>
+      <li>npm init -y<br />
+<br /></li>
+    </ul>
+  </li>
+  <li>安裝 Jest
+    <ul>
+      <li>npm install –save-dev jest<br />
+<br /></li>
+    </ul>
+  </li>
+  <li>使用 npm 輸入安裝 Jest 的指令之後，除了在 node_module 中加入 jest 模組之外，也會在 package.json 文件中加入一些基本的設定。 
+<img src="https://hackmd.io/_uploads/r1s_QYfwA.png" alt="安裝 Jest" /></li>
+</ul>
+
+<h3 id="-專案結構">─ 專案結構</h3>
+
+<p>以下是 Jest 專案常見的結構。</p>
+<ul>
+  <li><span class="red">test_project/</span>
+    <ul>
+      <li><span class="red">src/</span>
+        <ul>
+          <li>components/
+            <ul>
+              <li>Component1.js</li>
+              <li>Component2.js</li>
+            </ul>
+          </li>
+          <li>utils/
+            <ul>
+              <li>util1.js</li>
+              <li>util2.js</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><span class="red">tests/</span>
+        <ul>
+          <li>unit/
+            <ul>
+              <li>component1.test.js</li>
+              <li>component2.test.js</li>
+            </ul>
+          </li>
+          <li>integration/
+            <ul>
+              <li>integration_test1.test.js</li>
+              <li>integration_test2.test.js</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><span class="red">coverage/</span>
+        <ul>
+          <li>lcov-report/
+            <ul>
+              <li>index.html</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>node_modules/</li>
+      <li><span class="red">package.json</span></li>
+      <li>setupTests.js<br />
+<br /></li>
+    </ul>
+  </li>
+  <li>src/：這裡存放需要被測試的原始碼文件。</li>
+  <li>tests/：這裡存放針對 src/ 內程式碼撰寫的測試案例文件。</li>
+  <li>coverage/：這裡存放測試後生成的程式碼覆蓋率報告文件。</li>
+  <li>package.json：這個檔案包含了與測試相關的配置設定。</li>
+</ul>
+
+<p>那 setupTests.js 則是你在配置的時候，如果有定義 setupFiles，那你就可以在這支檔案裡面做一些測試前的準備工作。<br />
+<img src="https://hackmd.io/_uploads/r1JkBKMDA.png" alt="專案結構" /></p>
+
+<h3 id="-測試相關配置">─ 測試相關配置</h3>
+
+<h4 id="-packagejson">─── package.json</h4>
+
+<ul>
+  <li>Jest 的 package.json 可以設定測試的相關配置，這些配置通常包括測試的入口文件、測試覆蓋率報告、以及其他一些自定義配置。</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"your-project-name"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Description of your project"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"scripts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="nl">"test"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jest"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="err">//</span><span class="w"> </span><span class="err">專案運行時所需的環境依賴</span><span class="w">
+  </span><span class="nl">"devDependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"jest"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^29.7.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jsdom"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^24.0.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jest-mock-axios"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^4.7.3"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jest-environment-jsdom"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^29.7.0"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="err">//</span><span class="w"> </span><span class="err">專案運行時所需的外部依賴</span><span class="w">
+  </span><span class="nl">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"jquery"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^3.7.1"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="err">//</span><span class="w"> </span><span class="err">定義</span><span class="w"> </span><span class="err">Jest</span><span class="w"> </span><span class="err">測試</span><span class="w"> </span><span class="err">option</span><span class="w">
+  </span><span class="nl">"jest"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"rootDir"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"roots"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"&lt;rootDir&gt;/test_project"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定在執行測試之前要執行的腳本文件</span><span class="w">
+    </span><span class="nl">"setupFiles"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"&lt;rootDir&gt;/test_project/setupTests.js"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定</span><span class="w"> </span><span class="err">Jest</span><span class="w"> </span><span class="err">測試的環境</span><span class="w">
+    </span><span class="nl">"testEnvironment"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jsdom"</span><span class="p">,</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定</span><span class="w"> </span><span class="err">Jest</span><span class="w"> </span><span class="err">測試文件的匹配模式</span><span class="w">
+    </span><span class="nl">"testMatch"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"**/__tests__/**/*.js"</span><span class="p">,</span><span class="w"> 
+      </span><span class="s2">"**/?(*.)+(spec|test).js"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">定義覆蓋率的閾值</span><span class="w">
+    </span><span class="nl">"coverageThreshold"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"global"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"branches"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"functions"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"lines"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"statements"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定哪些文件需要收集覆蓋率訊息</span><span class="w">
+    </span><span class="nl">"collectCoverageFrom"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"src/**/*.js"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定生成覆蓋率報告的格式</span><span class="w">
+    </span><span class="nl">"coverageReporters"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"json"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"lcov"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"text"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"clover"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定覆蓋率報告的輸出目錄</span><span class="w">
+    </span><span class="nl">"coverageDirectory"</span><span class="p">:</span><span class="w"> </span><span class="s2">"coverage"</span><span class="p">,</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<ul>
+  <li><strong>devDependencies</strong> : 在這個節點中，列出了專案運行時所需的環境依賴。
+    <ul>
+      <li>這邊可以使用 npm install –save-dev jest 或 yarn add –dev jest 來安裝 Jest。<br />
+<br /></li>
+    </ul>
+  </li>
+  <li><strong>dependencies</strong> : 在這個節點中，列出了專案運行時所需的外部依賴。
+    <ul>
+      <li>這邊可以使用 npm install 來安裝第三方 module。<br />
+<br /></li>
+    </ul>
+  </li>
+  <li><strong>jest</strong> : 在這個節點中，定義了 Jest 測試的配置選項：
+    <ul>
+      <li>setupFiles: 指定在執行測試之前要執行的腳本文件。
+        <ul>
+          <li>可以在執行測試之前，預先執行一些全域設置、初始化或配置測試環境等。<br />
+  <img src="https://hackmd.io/_uploads/S1WphCvk0.png" alt="全域設置" /></li>
+        </ul>
+      </li>
+      <li>testEnvironment: 指定 Jest 測試的環境。</li>
+      <li>testMatch: 指定 Jest 測試文件的匹配模式。</li>
+      <li>coverageThreshold: 定義代碼覆蓋率的閾值。</li>
+      <li>collectCoverageFrom: 指定哪些文件需要收集代碼覆蓋率訊息。</li>
+      <li>coverageReporters: 指定生成覆蓋率報告的格式。</li>
+      <li>coverageDirectory: 指定覆蓋率報告的輸出目錄。<br />
+<br /></li>
+    </ul>
+  </li>
+  <li>上述是 package.json 配置中的一些常見選項，根據具體需求，可以在加入其他配置。</li>
+</ul>
+
+<h4 id="-jestconfigjs">─── jest.config.js</h4>
+
+<ul>
+  <li>
+    <p>Jest 運行測試時，會從專案目錄開始尋找 jest.config.js ，如果沒有找到，就會查看上面說到的 package.json 其中是否包含 jest 配置區塊。</p>
+  </li>
+  <li>
+    <p>而使用 JavaScript 來定義配置，可以使用一些變數、條件邏輯、或是可以直接使用 require 載入其他模組當作設置等等，比起簡單的 JSON 格式可以更靈活的配置你的測試環境，你可以根據不同的專案需求或結構，來選擇適合的配置方式。</p>
+  </li>
+</ul>
+
+<pre><code class="language-JavaScript">// jest.config.js
+module.exports = {
+    rootDir: "../",
+    roots: ["&lt;rootDir&gt;/test_project"],
+    setupFiles: ["&lt;rootDir&gt;/test_project/setupTests.js"],
+    testEnvironment: "jsdom",
+    testMatch: [
+        "**/__tests__/**/*.js", 
+        "**/?(*.)+(spec|test).js"
+    ],
+    coverageDirectory: "&lt;rootDir&gt;/test_project/Coverage/",
+    reporters: [
+        "default",
+        [require.resolve('jest-junit'), {
+            "outputDirectory": "&lt;rootDir&gt;/test_project/Coverage/",
+            "outputName": "jest-junit.xml"
+        }]
+    ]
+};
+</code></pre>
+
+<h3 id="-新增測試檔案">─ 新增測試檔案</h3>
+
+<ol>
+  <li>
+    <p>假設在 src/ 路徑下，有一個 calculator.js 需要被測試的檔案。</p>
+
+    <ul>
+      <li>test_project/
+        <ul>
+          <li><strong>src/</strong>
+            <ul>
+              <li><span class="red">calculator.js</span></li>
+            </ul>
+          </li>
+          <li>tests/<br />
+<br /></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>需要將 calculator.js 內部方法使用 module.exports 導出。
+    <pre><code class="language-JavaScript"> // calculator.js
+ const calculator = {
+     function() {
+         //...
+     }
+ };
+
+ module.exports = calculator;
+</code></pre>
+    <ul>
+      <li><a href="/testing/2024/03/22/Jest-Testing-Importing-and-Customizing-Modules.html#h--引入外部依賴">(測試檔案如何使用被測試原始碼的內部方法)</a> <br />
+<br /></li>
+    </ul>
+  </li>
+  <li>再 tests/ 路徑下，新增名為 calculator.test.js 的測試檔案。
+    <ul>
+      <li>test_project/
+        <ul>
+          <li>src/
+            <ul>
+              <li>calculator.js</li>
+            </ul>
+          </li>
+          <li><strong>tests/</strong>
+            <ul>
+              <li><span class="red">calculator.test.js</span><br />
+<br /></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>在 calculator.test.js 測試檔案檔案內，引入被測試檔案。
+    <pre><code class="language-JavaScript"> // calculator.test.js
+ const Calculator = require('calculator');
+</code></pre>
+  </li>
+  <li>針對被測試檔案內部方法撰寫測試。
+    <pre><code class="language-JavaScript"> // calculator.test.js
+ const Calculator = require('calculator');
+
+ describe('testModule', () =&gt; {
+   it('TestFunction', () =&gt; {
+     //...
+     });
+
+   it('innerFunction', () =&gt; {
+     //...
+   });
+ });
+</code></pre>
+    <ul>
+      <li><a href="#-測試案例">(如何撰寫測試案例)</a></li>
+      <li><a href="#-監視--斷言">(如何驗證測試結果)</a></li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="-如何運行測試">─ 如何運行測試</h3>
+
+<ul>
+  <li>在 Command-line (CMD) 運行測試<br />
+<br />
+    <ul>
+      <li>打開（CMD）使用 cd 命令進入你的專案目錄。<br />
+<br /></li>
+      <li>
+        <p>如果在 package.json 中設置了測試腳本，一旦進入了專案目錄，可以直接運行測試。</p>
+
+        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nb">cd </span>path/to/your/project
+</code></pre></div>        </div>
+      </li>
+      <li>或是輸入指令進行測試，這將會運行所有的測試並輸出結果到終端。
+        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  npm <span class="nb">test</span>
+</code></pre></div>        </div>
+        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  npm <span class="nb">test</span> <span class="nt">--</span> <span class="nt">--coverage</span>        <span class="c"># --coverage 會顯示覆蓋率</span>
+</code></pre></div>        </div>
+      </li>
+      <li>預設情況下，Jest 會找：<strong>tests</strong> 資料夾內的 .js, .jsx, .ts, .tsx 以 .test 或 .spec 結尾的檔案。
+        <ul>
+          <li>例如 component1.test.js</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="測試方法">測試方法</h2>
+
+<h3 id="-測試案例">─ 測試案例</h3>
+
+<ul>
+  <li><strong>describe</strong>
+    <ul>
+      <li>組織測試案例：
+        <ul>
+          <li>使用 describe 函數來將測試案例分組，使其更有組織性和易讀性。<br />
+  <br /></li>
+        </ul>
+      </li>
+      <li>提供描述標題：
+        <ul>
+          <li>每個 describe 區塊有一個描述性的標題，可以清楚地說明這組測試案例的目的或主題。<br />
+  <br /></li>
+        </ul>
+      </li>
+      <li>隔離測試案例：
+        <ul>
+          <li>使用 describe 函數將相關的測試案例分組，這樣可以更好地隔離測試案例之間的影響。<br />
+  <br /></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>it / test</strong>
+    <ul>
+      <li>提供測試案例的描述：
+        <ul>
+          <li>通過標題清楚地描述測試的目的或要驗證的功能。  <br />
+  <br /></li>
+        </ul>
+      </li>
+      <li>提供可讀性和可維護性：
+        <ul>
+          <li>通過清晰的描述和組織良好的測試案例，提高測試的可讀性和可維護性。<br />
+  <br /></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<pre><code class="language-JavaScript">describe('testModule', () =&gt; {
+    it('TestFunction', () =&gt; {
+        //...
+    });
+    
+    it('innerFunction', () =&gt; {
+        //...
+    });
+});
+</code></pre>
+
+<h3 id="-hook">─ HOOK</h3>
+
+<ul>
+  <li>在 Jest 測試框架中有提供鉤子函數，beforeEach &amp; afterEach。
+    <ul>
+      <li>beforeEach &amp; afterEach 的觸發會<strong>限制在 describe 群組內</strong>。<br />
+<br /></li>
+    </ul>
+  </li>
+  <li><strong>beforeEach</strong>
+    <ul>
+      <li>函數會在每個測試運行<strong>之前</strong>運行一次。</li>
+      <li>通常用於設置測試的前置條件。</li>
+      <li>例如：初始化測試數據、創建模擬對象等
+        <pre><code class="language-JavaScript">  describe('testModule', () =&gt; {
+      beforeEach(() =&gt; {
+          // 在每個測試運行之前執行的操作
+          // 初始化測試數據、創建模擬對象等
+      });
+            
+      it('TestFunction', () =&gt; {
+          //...
+      });
+  });
+</code></pre>
+        <p><br /></p>
+      </li>
+    </ul>
+  </li>
+  <li><strong>afterEach</strong>
+    <ul>
+      <li>函數會在每個測試運行<strong>之後</strong>運行一次。</li>
+      <li>通常用於清理測試過程中可能產生的副作用。</li>
+      <li>例如：重置測試數據、銷毀模擬對象等。
+        <pre><code class="language-JavaScript">  describe('testModule', () =&gt; {
+      afterEach(() =&gt; {
+          // 在每個測試運行之後執行的操作
+          // 清理測試過程中可能產生的副作用、重置測試數據、銷毀模擬對象等
+      });
+        
+      it('TestFunction', () =&gt; {
+          //...
+      });
+  });
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="-監視--斷言">─ 監視 &amp; 斷言</h3>
+
+<ul>
+  <li>
+    <p>而該怎麼驗證測試是否正確，Jest 提供 jest.spyOn() 函式。</p>
+
+    <ul>
+      <li>
+        <p>jest.spyOn() 用於創建一個對特定物件的方法進行模擬的 Spy（間諜）。</p>
+      </li>
+      <li>
+        <p>jest.spyOn() 也可以監視一個物件的特定方法，記錄它的呼叫情況以及接收到的參數。</p>
+
+        <pre><code class="language-JavaScript">  // Module.test.js
+  // 引入被測試的模組
+  const Module = require('./Module');
+
+  // 使用 jest.spyOn 監視 TestFunction 方法
+  const spy = jest.spyOn(Module, 'TestFunction');
+
+  // 呼叫 TestFunction 方法
+  Module.TestFunction();
+
+  // 斷言 TestFunction 方法被呼叫過
+  expect(spy).toHaveBeenCalled();
+
+  // 清除監視，恢復原始方法
+  spy.mockRestore();
+</code></pre>
+        <p><br /></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>在上述 jest.spyOn 監視物件方法後，可以使用 Jest 提供的 expect() 斷言函式來進行測試</p>
+    <ul>
+      <li><strong>返回值的斷言方法</strong>
+        <ol>
+          <li>expect().toBe(value): 斷言實際值是否與預期值完全相等。</li>
+          <li>expect().toEqual(value): 斷言兩個對象是否在值上相等（所有屬性和屬性值相等）。</li>
+          <li>expect().toMatch(pattern): 斷言字符串是否與正則表達式匹配。</li>
+          <li>expect().toContain(item): 斷言某個集合（數組、Set）是否包含指定的元素。</li>
+          <li><a href="https://jestjs.io/docs/expect">more</a>…<br />
+<br /></li>
+        </ol>
+      </li>
+      <li><strong>監視的斷言方法</strong>
+        <ol>
+          <li>toHaveBeenCalled(): 斷言被監視的方法是否被呼叫過。</li>
+          <li>toHaveBeenCalledWith(arg1, arg2, …): 斷言被監視的方法是否被指定的參數呼叫過。</li>
+          <li>toHaveReturned(): 斷言被監視的方法是否有返回值。</li>
+          <li>toHaveReturnedWith(value): 斷言被監視的方法是否有指定的返回值。</li>
+          <li>toHaveBeenCalledTimes(number): 斷言監視方法被呼叫的次數是否符合指定的數量。</li>
+          <li><a href="https://jestjs.io/docs/expect">more</a>…</li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="-模擬方法行為">─ 模擬方法行為</h3>
+
+<ul>
+  <li><strong>mockReturnValue</strong>
+    <ul>
+      <li>mockReturnValue 用於設置 mock 函數的返回值。它將覆蓋原始函數的返回值，無論函數的實際執行結果是什麼，都將返回被設置的值。</li>
+      <li>通常與 jest.fn() 一起使用，用於創建一個新的 mock 函數並設置其返回值。</li>
+      <li>當你想要模擬函數的返回值，但不關心函數的實際實現時，可以使用 mockReturnValue。<br />
+<br /></li>
+    </ul>
+  </li>
+  <li><strong>mockImplementation</strong>
+    <ul>
+      <li>mockImplementation 用於設置 mock 函數的實現。它將覆蓋原始函數的實現，無論原始函數的實際代碼是什麼，都將執行被設置的函數實現。</li>
+      <li>通常與 jest.fn() 一起使用，用於創建一個新的 mock 函數並設置其實現。</li>
+      <li>當你想要模擬函數的實現，並指定特定的行為或邏輯時，可以使用 mockImplementation。<br />
+<br /></li>
+    </ul>
+  </li>
+  <li>當測試某個方法時，該方法內部調用了其他方法並依賴其回傳值時，使用模擬回傳值的方法來測試。
+    <ul>
+      <li>隔離被測試方法的行為，專注於測試它的功能，而不需要依賴其他方法的實際實現。</li>
+      <li>可以使測試更加獨立和可靠，並且在測試失敗時更容易定位問題。<br />
+<br /></li>
+    </ul>
+
+    <pre><code class="language-JavaScript">  // Module.js
+  function TestFunction() {
+    // 假設 TestFunction 內部調用了 innerFunction 方法
+    const value = innerFunction();
+    return value;
+  }
+
+  function innerFunction() {
+    //...內部處理邏輯
+  }
+
+  module.exports = {
+    TestFunction: TestFunction,
+    innerFunction: innerFunction
+  };
+</code></pre>
+
+    <pre><code class="language-JavaScript">  // Module.test.js
+  const Module = require('./Module');
+
+  // 模擬 innerFunction 的返回值
+  const innerSpy = jest.spyOn(Module, 'innerFunction').mockReturnValue('jensen');
+
+  // 使用 jest.spyOn 監視 TestFunction 方法
+  const spy = jest.spyOn(Module, 'TestFunction');
+
+  // 調用 TestFunction 方法
+  const result = Module.TestFunction();
+
+  // 斷言方法的返回值是否正確
+  expect(result).toBe('jensen');
+
+  // 清除監視
+  spy.mockRestore();
+  innerSpy.mockRestore();
+</code></pre>
+  </li>
+</ul>
+
+<h3 id="-清除--恢復">─ 清除 &amp; 恢復</h3>
+<ul>
+  <li>
+    <p>在測試結束後要清除監視，恢復原始方法，避免引響其他測試，確保測試獨立性。</p>
+
+    <ol>
+      <li>jest.clearAllMocks(): 清除所有模擬函數的調用次數、傳入的參數等，但不還原模擬函數的行為。</li>
+      <li>jest.clearAllTimers(): 清除所有計時器的設置，包括 setTimeout、setInterval 等。</li>
+      <li>jest.resetAllMocks(): 重置所有模擬函數的狀態，包括還原它們的行為以及清除調用信息。</li>
+      <li>jest.resetModules(): 重置所有模組的狀態，將它們從快取中卸載並重新加載，使它們回到初始狀態。</li>
+      <li>jest.restoreAllMocks(): 還原所有使用 jest.spyOn 創建的模擬函數的原始實現。</li>
+      <li>jest.runOnlyPendingTimers(): 立即執行所有處於待定狀態的計時器，而不需要等待真實的時間。</li>
+      <li>jest.advanceTimersByTime(ms): 快進指定時間(ms)以觸發計時器。</li>
+    </ol>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="覆蓋率分析">覆蓋率分析</h2>
+
+<h3 id="-command">─ Command</h3>
+<ul>
+  <li>
+    <p>當執行測試之後在在 Terminal 畫面上會顯示目前被測程式，測試到的覆蓋率 %。<br />
+<img src="https://hackmd.io/_uploads/B1RkOZOy0.png" alt="覆蓋率" /></p>
+  </li>
+  <li>
+    <p>當中可以看到測試案例是成功或是失敗，最後會統計整體與個別的覆蓋率資訊。<br />
+<img src="https://hackmd.io/_uploads/rJmZFOfvR.png" alt="終端機覆蓋率" /></p>
+  </li>
+</ul>
+
+<h3 id="-html">─ HTML</h3>
+<ul>
+  <li>
+    <p>執行測試完畢的同時在 Coverage 資料夾下的 lcov-report 裡，也會生成一個 index.html。<br />
+<img src="https://hackmd.io/_uploads/Hk9LUPZkR.png" alt="index網頁" /></p>
+  </li>
+  <li>
+    <p>裡面提供了更詳細的圖表分析報告。<br />
+<img src="https://hackmd.io/_uploads/Hy8w_bdy0.png" alt="總分析報告" /></p>
+  </li>
+  <li>
+    <p>可以針對個別檔案點擊，查看詳細的內容。</p>
+    <ul>
+      <li>
+        <p>內容會以<span class="red"><strong>紅色</strong></span>標註指出未覆蓋到的 Statements。</p>
+      </li>
+      <li>
+        <p>而在判斷處會指出其中 <strong>if</strong> 或 <strong>else</strong> 沒有被測試到。</p>
+      </li>
+      <li>
+        <p>能夠更精確的撰寫測試案例，以便覆蓋到所有 Statements。</p>
+      </li>
+    </ul>
+
+    <p><img src="https://hackmd.io/_uploads/rJ6kdvWkA.png" alt="個別分析報告" /></p>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://jestjs.io/docs/getting-started">Jest Docs</a></li>
+  <li><a href="https://jestjs.io/docs/expect">Jest Expect</a></li>
+  <li><a href="https://jestjs.io/docs/api#methods">Jest Methods</a></li>
+  <li><a href="https://jestjs.io/docs/mock-functions">Jest Mock Functions</a></li>
+</ul>
+
+<style>
+    .red {
+      color: red;
+    }
+    .Orange {
+      color: Darkorange ;   
+    }
+    .Brown {
+      color: SandyBrown;   
+    }
+    .yellow {
+      color: Gold;   
+    }
+</style>]]></content><author><name>Jensen Hsiao</name></author><category term="Testing" /><category term="Jest" /><category term="Test" /><category term="Node.js" /><category term="JavaScript" /><summary type="html"><![CDATA[How to create a test cases in Jest]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/Jest.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">LDAP Injection</title><link href="https://jensenxiao.github.io/security/LDAP-Injection" rel="alternate" type="text/html" title="LDAP Injection" /><published>2024-02-29T00:00:00+00:00</published><updated>2024-02-29T00:00:00+00:00</updated><id>https://jensenxiao.github.io/security/LDAP-Injection</id><content type="html" xml:base="https://jensenxiao.github.io/security/LDAP-Injection"><![CDATA[<h2 id="弱點風險">弱點風險</h2>
+<ul>
+  <li>Checkmarx 弱點掃描掃出，使用 DirectorySearcher 建立 LDAP 查詢句，其中 search.Filter 使用沒有被處理過不受信任的字串，可能會有被注入攻擊的機會。
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">DirectorySearcher</span> <span class="n">search</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DirectorySearcher</span><span class="p">(</span><span class="n">directoryEntry</span><span class="p">);</span>
+
+  <span class="c1">// 搜尋 AD 帳號名稱為 USER_ID 的項目</span>
+  <span class="n">search</span><span class="p">.</span><span class="n">Filter</span> <span class="p">=</span> <span class="s">"(SAMAccountName="</span> <span class="p">+</span> <span class="n">Obj</span><span class="p">.</span><span class="n">USER_ID</span> <span class="p">+</span> <span class="s">")"</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>這邊在 <a href="https://learn.microsoft.com/zh-tw/archive/blogs/securitytools/antixss-4-0-released">AntiXSS 4.0 Released</a> 程式庫中有提供 LDAP Encoding changes 的方法，可以透過 Encode 的方式將字串轉義，來避免 LDAP Injection。<br />
+<br /></li>
+  <li>開啟 NuGet 套件管理員，搜尋並安裝 AntiXSS 。<br />
+<img src="https://hackmd.io/_uploads/rkFE0gs2T.png" alt="AntiXSS" /><br />
+<br /></li>
+  <li>其中針對 LDAP 有提供了三個方法
+    <ul>
+      <li>Encoder.LdapFilterEncode(string)：
+        <ul>
+          <li>用於編碼 LDAP 查詢過濾器中的值，如 (、)、*、\、/、NUL 等特殊字符。</li>
+          <li>會對這些特殊字符進行轉義，轉義為 LDAP 查詢語法中的安全表示形式。<br />
+<br /></li>
+        </ul>
+      </li>
+      <li>Encoder.LdapDistinguishedNameEncode(string)：
+        <ul>
+          <li>Distinguished Name（DN）在創建或修改LDAP條目時使用的屬性值。</li>
+          <li>用於編碼LDAP分類名稱（DN）中的值，如 ,、=、+、&lt;、&gt;、#、;、\。</li>
+          <li>會對這些特殊字符進行轉義，轉義成為LDAP DN中的安全表示形式。<br />
+<br /></li>
+        </ul>
+      </li>
+      <li>Encoder.LdapDistinguishedNameEncode(string, bool, bool)：
+        <ul>
+          <li>這個重載方法允許你指定額外的參數來控制編碼的行為。</li>
+          <li>第一個參數是要編碼的字符串。</li>
+          <li>第二個參數，用於指示是否編碼域（即 @ 後面的部分）中的特殊字符。
+            <ul>
+              <li>設置為 true，則會對域中的特殊字符進行轉義，默認為 false。</li>
+            </ul>
+          </li>
+          <li>第三個參數，用於指示是否編碼空格。
+            <ul>
+              <li>設置為 true，則會對空格進行轉義，默認為 true。<br />
+<br /></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>通過使用 Encoder.LdapFilterEncode 方法對變數進行編碼，可以有效地解決潛在的弱點風險。
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">using</span> <span class="nn">Microsoft.Security.Application</span><span class="p">;</span>
+
+  <span class="n">DirectorySearcher</span> <span class="n">search</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DirectorySearcher</span><span class="p">(</span><span class="n">directoryEntry</span><span class="p">);</span>
+
+  <span class="c1">// 對字串編碼</span>
+  <span class="kt">string</span> <span class="n">filteredUserId</span> <span class="p">=</span> <span class="n">Encoder</span><span class="p">.</span><span class="nf">LdapFilterEncode</span><span class="p">(</span><span class="n">Obj</span><span class="p">.</span><span class="n">USER_ID</span><span class="p">);</span>
+
+  <span class="c1">// 搜尋 AD 帳號名稱為 USER_ID 的項目</span>
+  <span class="n">search</span><span class="p">.</span><span class="n">Filter</span> <span class="p">=</span> <span class="s">"(SAMAccountName="</span> <span class="p">+</span> <span class="n">filteredUserId</span> <span class="p">+</span> <span class="s">")"</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html">LDAP Injection Prevention</a></li>
+  <li><a href="https://learn.microsoft.com/zh-tw/archive/blogs/securitytools/antixss-4-0-released">AntiXSS 4.0 Released</a></li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Security" /><category term="Security" /><category term="Checkmarx" /><category term="C Sharp" /><summary type="html"><![CDATA[How to Prevent LDAP Injection]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/LDAP-Injection.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/LDAP-Injection.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">SQL Percentage Sign Escaping</title><link href="https://jensenxiao.github.io/markdown/Percentage-Escaping" rel="alternate" type="text/html" title="SQL Percentage Sign Escaping" /><published>2024-02-23T00:00:00+00:00</published><updated>2024-02-23T00:00:00+00:00</updated><id>https://jensenxiao.github.io/markdown/Percentage-Escaping</id><content type="html" xml:base="https://jensenxiao.github.io/markdown/Percentage-Escaping"><![CDATA[<h2 id="sql-語法將--字元視為萬用字元">SQL 語法將 ％ 字元視為萬用字元</h2>
+
+<ul>
+  <li>
+    <p>系統在做模糊查詢時，如果要查詢的字串包含有 ％ 字元，會被 SQL 認為是萬用字元</p>
+  </li>
+  <li>所以針對使用者輸入的變數，檢查是否有 % 字元，將其使用跳脫符號避免結果與預期不同
+    <ul>
+      <li><strong>Ms sql</strong>
+        <ul>
+          <li>
+            <p>使用 [] 跳脫</p>
+          </li>
+          <li>
+            <p>將 % 替換成 [%]</p>
+          </li>
+        </ul>
+      </li>
+      <li><strong>Oracle</strong>
+        <ul>
+          <li>
+            <p>需要在 LIKE 參數後面使用 ESCAPE 關鍵字，定義符號 \ 為跳脫符號</p>
+          </li>
+          <li>
+            <p>將 % 替換成 \%</p>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>修改 C# 中組合 SQL 語句處，找尋 param 中有含 % 字元的，針對不同 DBType 做SQL語法處理</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="c1">//...</span>
+
+  <span class="c1">// 如果值包含 '%' 字元，則對 SQL 語法處理</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">param</span><span class="p">.</span><span class="nf">ContainsKey</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="n">param</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="nf">Contains</span><span class="p">(</span><span class="s">"%"</span><span class="p">))</span>
+  <span class="p">{</span>
+      <span class="kt">var</span> <span class="n">escapedVal</span> <span class="p">=</span> <span class="s">""</span><span class="p">;</span>
+
+      <span class="k">switch</span> <span class="p">(</span><span class="n">DBType</span><span class="p">)</span>
+      <span class="p">{</span>
+          <span class="k">case</span> <span class="n">MsSqlServer</span><span class="p">:</span>
+              <span class="c1">// 在 SQL Server 中將 % 替換為 [%] 跳脫</span>
+              <span class="n">escapedValue</span> <span class="p">=</span> <span class="n">param</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="nf">Replace</span><span class="p">(</span><span class="s">"%"</span><span class="p">,</span> <span class="s">"[%]"</span><span class="p">);</span>
+
+              <span class="c1">// 替換 SQL 語法中的參數值</span>
+              <span class="n">Sql</span> <span class="p">=</span> <span class="n">Sql</span><span class="p">.</span><span class="nf">Replace</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">Groups</span><span class="p">[</span><span class="s">"param"</span><span class="p">].</span><span class="n">Value</span><span class="p">,</span> <span class="s">"'"</span> <span class="p">+</span> <span class="n">escapedVal</span> <span class="p">+</span> <span class="s">"'"</span><span class="p">);</span>
+              <span class="k">break</span><span class="p">;</span>
+
+          <span class="k">case</span> <span class="n">Oracle</span><span class="p">:</span>
+              <span class="c1">// 在 Oracle 中將 % 替換為 \% 跳脫</span>
+              <span class="n">escapedValue</span> <span class="p">=</span> <span class="n">param</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="nf">Replace</span><span class="p">(</span><span class="s">"%"</span><span class="p">,</span> <span class="s">@"\%"</span><span class="p">);</span>
+
+              <span class="c1">// 如果是 LIKE '%'||'param' 子句</span>
+              <span class="c1">// 替換 SQL 語法中的值，以及加入 ESCAPE '\'</span>
+              <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="nf">IsNullOrEmpty</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">Groups</span><span class="p">[</span><span class="s">"escape"</span><span class="p">].</span><span class="n">Value</span><span class="p">))</span>
+              <span class="p">{</span>
+                  <span class="n">Sql</span> <span class="p">=</span> <span class="n">Sql</span><span class="p">.</span><span class="nf">Replace</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">Groups</span><span class="p">[</span><span class="s">"param"</span><span class="p">].</span><span class="n">Value</span><span class="p">,</span> <span class="s">"'"</span> <span class="p">+</span> <span class="n">escapedVal</span> <span class="p">+</span> <span class="s">"' ESCAPE '\\'"</span><span class="p">);</span>
+              <span class="p">}</span>
+              <span class="k">else</span>
+              <span class="p">{</span>
+                  <span class="c1">// 如果是 LIKE '%'||'param%'||'%' 子句</span>
+                  <span class="c1">// 則替換 SQL 語法中的值，和替換後面的 '%' 子句，加入 ESCAPE '\'</span>
+                  <span class="n">Sql</span> <span class="p">=</span> <span class="n">Sql</span><span class="p">.</span><span class="nf">Replace</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">Groups</span><span class="p">[</span><span class="s">"param"</span><span class="p">].</span><span class="n">Value</span><span class="p">,</span> <span class="s">"'"</span> <span class="p">+</span> <span class="n">escapedVal</span> <span class="p">+</span> <span class="s">"'"</span><span class="p">);</span>
+                  <span class="n">Sql</span> <span class="p">=</span> <span class="n">Sql</span><span class="p">.</span><span class="nf">Replace</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">Groups</span><span class="p">[</span><span class="s">"escape"</span><span class="p">].</span><span class="n">Value</span><span class="p">,</span> <span class="s">"||'%' ESCAPE '\\'"</span><span class="p">);</span>
+              <span class="p">}</span>
+              <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+  <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Markdown" /><category term="SQL" /><category term="C Sharp" /><summary type="html"><![CDATA[How to escape a percentage sign in SQL]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/Oracle-SQLServer.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/Oracle-SQLServer.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">EUDC Characters in Aspose.Words</title><link href="https://jensenxiao.github.io/markdown/Aspose-Words" rel="alternate" type="text/html" title="EUDC Characters in Aspose.Words" /><published>2024-02-16T00:00:00+00:00</published><updated>2024-02-16T00:00:00+00:00</updated><id>https://jensenxiao.github.io/markdown/Aspose-Words</id><content type="html" xml:base="https://jensenxiao.github.io/markdown/Aspose-Words"><![CDATA[<h2 id="asposewords-自造字無法顯示問題">Aspose.Words 自造字無法顯示問題</h2>
+
+<ul>
+  <li>
+    <p>套印 word 文件時，EUDC 自造字無法正確顯示</p>
+
+    <p><img src="https://hackmd.io/_uploads/SJn6ENEn6.png" alt="難字不正常" /></p>
+  </li>
+  <li>根據不同類型檔案設定
+    <ul>
+      <li><strong>.TTE</strong> 設定字型檔案與系統字型連結
+        <ul>
+          <li>
+            <p>當拿到字造字型檔放到電腦後，要設定機碼讓它連結到系統字型<br />
+  <img src="https://hackmd.io/_uploads/Bynz4Fr3p.png" alt="字型檔" /></p>
+          </li>
+          <li>
+            <p>使用 Administrator 在開始中輸入「regedit」開啟登陸編輯程式<br />
+  <img src="https://hackmd.io/_uploads/ryFKMFr3T.png" alt="Regedit" /></p>
+          </li>
+          <li>
+            <p>機碼目錄為 電腦\HKEY_CURRENT_USER\EUDC\950<br />
+  <img src="https://hackmd.io/_uploads/SJsbXKBha.png" alt="機碼" /></p>
+          </li>
+          <li>
+            <p>機碼 SystemDefaultEUDCFont，修改數值資料為 EUDC 字型檔所在目錄<br />
+  <img src="https://hackmd.io/_uploads/HkKKmKB3p.png" alt="數值資料" /></p>
+          </li>
+        </ul>
+      </li>
+      <li><strong>.TTF</strong> 安裝字型檔至系統
+        <ul>
+          <li>
+            <p>使用 Administrator 開啟字型檔，點選安裝<br />
+  <img src="https://hackmd.io/_uploads/Bynz4Fr3p.png" alt="字型檔" /></p>
+
+            <p><img src="https://hackmd.io/_uploads/B1yNGKHhp.png" alt="TTF檔案安裝" /></p>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>將系統重新啟動</p>
+  </li>
+  <li>開啟 Word 檔，另存成 PDF 檔案來驗證 一般字及自造字 是否完整呈現</li>
+</ul>
+
+<hr />
+
+<h2 id="asposewords-轉-pdf-檔只有顯示自造字">Aspose.Words 轉 PDF 檔，只有顯示自造字</h2>
+
+<ul>
+  <li>
+    <p>使用 Aspose.Words 將 word 文件轉 PDF 檔時，只有 EUDC 自造字正確顯示，其他字型變成黑點</p>
+
+    <p><img src="https://hackmd.io/_uploads/SJBMHNN26.png" alt="系統字型錯誤" /></p>
+  </li>
+  <li>在 C# 程式 SetFontsSources 載入字型方法中
+    <ul>
+      <li>除了載入自造字型(FileFontSource)</li>
+      <li>也需載入系統自型(SystemFontSource)</li>
+    </ul>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">Aspose</span><span class="p">.</span><span class="n">Words</span><span class="p">.</span><span class="n">Document</span> <span class="n">doc</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Aspose</span><span class="p">.</span><span class="n">Words</span><span class="p">.</span><span class="nf">Document</span><span class="p">(</span><span class="s">@"C:\EUDC\Test.doc"</span><span class="p">);</span>
+
+  <span class="n">FontSettings</span><span class="p">.</span><span class="n">DefaultInstance</span><span class="p">.</span><span class="nf">SetFontsSources</span><span class="p">(</span>
+      <span class="k">new</span> <span class="n">FontSourceBase</span><span class="p">[]</span>
+      <span class="p">{</span> 
+          <span class="k">new</span> <span class="nf">SystemFontSource</span><span class="p">(),</span> 
+          <span class="k">new</span> <span class="nf">FileFontSource</span><span class="p">(</span><span class="s">@"C:\EUDC\JH.TTE"</span><span class="p">)</span> 
+      <span class="p">});</span>
+        
+  <span class="n">doc</span><span class="p">.</span><span class="nf">Save</span><span class="p">(</span><span class="s">@"C:\EUDC\Test.pdf"</span><span class="p">);</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>補上之後查看 Test.pdf 一般字及自造字皆有正確呈現</p>
+
+    <p><img src="https://hackmd.io/_uploads/r1drBVNhp.png" alt="字型正常顯示" /></p>
+  </li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Markdown" /><category term="Windows" /><category term="Form" /><category term="C Sharp" /><summary type="html"><![CDATA[How to use User-Defined Characters (EUDC) in Aspose.Words]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/AsposeWords.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/AsposeWords.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">RabbitMQ with External Auth</title><link href="https://jensenxiao.github.io/security/RabbitMQ-External" rel="alternate" type="text/html" title="RabbitMQ with External Auth" /><published>2023-12-20T00:00:00+00:00</published><updated>2023-12-20T00:00:00+00:00</updated><id>https://jensenxiao.github.io/security/RabbitMQ-External</id><content type="html" xml:base="https://jensenxiao.github.io/security/RabbitMQ-External"><![CDATA[<h2 id="introduction">Introduction</h2>
+<ul>
+  <li>使用純文字帳號密碼驗證機制，現在會被軟體掃出中風險如下
+    <ul>
+      <li>The remote Advanced Message Queuing Protocol (AMQP) service supports
+one or more authentication mechanisms that allow credentials to be
+sent in the clear.</li>
+    </ul>
+  </li>
+  <li>建議修改方式
+    <ul>
+      <li>Disable cleartext authentication mechanisms in the AMQP configuration.</li>
+      <li>將連線與認證方始改用 External 機制，強制使用 SSL 認證連線</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="rabbitmq-server">RabbitMQ Server</h2>
+<h3 id="--啟用-external-機制">- 啟用 External 機制</h3>
+
+<ul>
+  <li>開啟cmd<br />
+  cd至rabbit_server底下的sbin資料夾
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  cd C:\Program Files\RabbitMQ Server\rabbitmq_server-3.9.4\sbin (參考依照實際安裝路徑)
+</code></pre></div>    </div>
+  </li>
+  <li>檢查是否有rabbitmq-auth-mechanism-ssl plugin ?
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  rabbitmq-plugins list
+</code></pre></div>    </div>
+  </li>
+  <li>啟用rabbitmq-auth-mechanism-ssl
+    <ul>
+      <li>使用 <strong>Administrator</strong> 帳號登入
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  rabbitmq-plugins enable rabbitmq_auth_mechanism_ssl
+</code></pre></div>        </div>
+      </li>
+      <li>一般帳號登入至以下路徑找到 <strong>enabled_plugins</strong> 檔案
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  C:\Users\Administrator\AppData\Roaming\RabbitMQ\enabled_plugins(參考)
+</code></pre></div>        </div>
+        <p>直接修改檔案內容將要開啟的 plugin 加入<br />
+  <img src="https://hackmd.io/_uploads/ryJJZzCO6.png" alt="enabled_plugins " /></p>
+      </li>
+      <li>
+        <p>以上設定完成後<strong>重啟服務</strong></p>
+      </li>
+      <li>正確啟用後可以再次檢查會有”E”標記<br />
+  <img src="https://hackmd.io/_uploads/H1VqMH9Op.png" alt="螢幕擷取畫面 2024-01-09 114942" /></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="--設定-server-雙向驗證">- 設定 Server 雙向驗證</h3>
+
+<ul>
+  <li>伺服器端需要有以下三個檔案 (需要<span class="red"><strong>安裝到系統</strong></span>中)
+    <ul>
+      <li>Certificate Authority</li>
+      <li>Certificate</li>
+      <li>Private Key<br />
+  <img src="https://hackmd.io/_uploads/r1nzcN6_p.png" alt="Server憑證" /></li>
+    </ul>
+  </li>
+  <li>修改 <strong>advanced.config</strong> (若無此檔可自行新增)<br />
+  <img src="https://hackmd.io/_uploads/ry3wcNTuT.png" alt="AdvancedConfig" />
+    <ul>
+      <li>{ssl, [{versions, [‘tlsv1.2’, <del>‘tlsv1.1’</del>]}]}, 啟用的tls版本
+        <ul>
+          <li>(使用<span class="red"> tlsv1.2 </span>以上版本， tlsv1.1 協定已棄用，會被掃出中風險)</li>
+        </ul>
+      </li>
+      <li>{auth_mechanisms,[<del>‘PLAIN’</del>, ‘EXTERNAL’]}, 啟用的驗證方式
+        <ul>
+          <li>(身份驗證使用<span class="red"> EXTERNAL</span>，PLAIN 明文身份驗證，會被掃出中風險)</li>
+        </ul>
+      </li>
+      <li>
+        <p>{ssl_listeners, [5671]}, 指定 ssl port</p>
+      </li>
+      <li>{ssl_options, []} 設定ssl連線憑證
+        <ul>
+          <li>cacertfile 設定Certificate Authority檔案路徑</li>
+          <li>certfile 設定Certificate 檔案路徑</li>
+          <li>keyfile 設定Private Key 檔案路徑</li>
+          <li>{verify, verify_peer} 雙向驗證</li>
+          <li>{verify, verify_none} 不驗證Client端憑證</li>
+          <li>{fail_if_no_peer_cert, true} Client端沒有提供憑證不可連線</li>
+          <li>{fail_if_no_peer_cert, false} Client端沒有提供憑證可連線</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Config 正確設定後可以檢查會有”EXTERNAL”標記<br />
+  <img src="https://hackmd.io/_uploads/ryK48U5_a.png" alt="螢幕擷取畫面 2024-01-09 131408" /></li>
+</ul>
+
+<hr />
+
+<h2 id="rabbitmq-client">RabbitMQ Client</h2>
+<h3 id="--設定-client-雙向驗證">- 設定 Client 雙向驗證</h3>
+
+<ul>
+  <li>Client端也需要有以下三個檔案 (需要<span class="red"><strong>安裝到系統</strong></span>中)
+    <ul>
+      <li>Certificate Authority</li>
+      <li>Certificate</li>
+      <li>Private Key<br />
+  <img src="https://hackmd.io/_uploads/r1nzcN6_p.png" alt="Server憑證" /></li>
+    </ul>
+  </li>
+  <li>
+    <p>在 C# 中使用 RabbitMQ.Client 設定Ssl連線時，Ssl.CertPath 所讀取的檔案格式為 <strong>PKCS#12</strong> format   (<a href="https://www.rabbitmq.com/ssl.html">參考</a>)</p>
+  </li>
+  <li>所以需要將上述 <strong>Certificate</strong> &amp; <strong>Private Key</strong> <span class="red">合併</span>為 pfx 檔案。
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  //合併 certificate.crt &amp; private.key 為 pfx 格式 (pass:設定密碼也可留空)
+  openssl pkcs12 -export -in certificate.crt -inkey private.key -out client.pfx -passout pass:
+</code></pre></div>    </div>
+  </li>
+  <li>或是使用伺服器中 Certificate Authority (CA.crt &amp; CA.Key)產生 Client 端專用憑證。
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  //生成 client-key
+  openssl genrsa -out client-key.pem
+    
+  //使用 client-key 設定主體名稱生成 signingrequest
+  openssl req -new -key client-key.pem -out signingrequest.csr -subj "/CN=MockClient"
+    
+  //使用 signingrequest &amp; CA.crt &amp; CA.Key 生成 client-cert
+  openssl x509 -req -days 1024 -in signingrequest.csr -CA RootCA.pem -CAkey RootCA.key -CAcreateserial -out client-cert.pem
+    
+  //將 client-cert.pem 格式轉換為 client-cert.crt
+  openssl x509 -in client-cert.pem -out client-cert.crt
+    
+  //合併 client-cert.crt &amp; client-key.pem 為 pfx 格式 (pass:設定密碼也可留空)
+  openssl pkcs12 -export -in client-cert.crt -inkey client-key.pem -out client.pfx -passout pass:
+</code></pre></div>    </div>
+    <p><img src="https://hackmd.io/_uploads/SyvHNST_a.png" alt="Client憑證" /></p>
+  </li>
+  <li>C# appsettings.json 調整新增參數
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//CERT_PATH &amp; CERT_PASSPHRASE 有多個，可以在同一個""內使用;區隔
+//支援執行多個host連線驗證
+"RABBITMQ_ENDPOINTS": {
+  "EnableSSL": true,               //是否要啟用Ssl認證(bool)
+  "CERT_PATH": "path/client.pfx",  //設定上述生成的 pfx 檔案路徑
+  "CERT_PASSPHRASE": "",           //生成 pfx 檔案時設定的密碼
+}
+</code></pre></div>    </div>
+  </li>
+  <li>C# Client 端連線程式調整
+    <ul>
+      <li>使用 appsettings 中設定 bool 值，切換連線方式保留設定彈性。</li>
+      <li>增加 SslOption 設定。</li>
+    </ul>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">lock</span> <span class="p">(</span><span class="n">_lock</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="c1">//...</span>
+        
+      <span class="k">if</span> <span class="p">(</span><span class="n">_env</span><span class="p">.</span><span class="n">EnableSSL</span><span class="p">)</span>
+      <span class="p">{</span>
+          <span class="kt">var</span> <span class="n">certPathList</span> <span class="p">=</span> <span class="n">_env</span><span class="p">.</span><span class="n">CertPath</span><span class="p">.</span><span class="nf">Split</span><span class="p">(</span><span class="sc">';'</span><span class="p">);</span>
+          <span class="kt">var</span> <span class="n">certPassphraseList</span> <span class="p">=</span> <span class="n">_env</span><span class="p">.</span><span class="n">CertPassphrase</span><span class="p">.</span><span class="nf">Split</span><span class="p">(</span><span class="sc">';'</span><span class="p">);</span>
+            
+          <span class="n">factory</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span>
+          <span class="p">{</span>
+              <span class="n">DispatchConsumersAsync</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+              <span class="n">AutomaticRecoveryEnabled</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+              <span class="n">AuthMechanisms</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AuthMechanismFactory</span><span class="p">[]</span> <span class="p">{</span> <span class="k">new</span> <span class="nf">ExternalMechanismFactory</span><span class="p">()</span> <span class="p">},</span>
+          <span class="p">};</span>
+            
+          <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">item</span> <span class="k">in</span> <span class="n">hostList</span><span class="p">)</span>
+          <span class="p">{</span>
+              <span class="kt">var</span> <span class="n">endPoint</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AmqpTcpEndpoint</span>
+              <span class="p">{</span>
+                  <span class="n">HostName</span> <span class="p">=</span> <span class="n">item</span><span class="p">,</span>
+                  <span class="n">Port</span> <span class="p">=</span> <span class="n">Convert</span><span class="p">.</span><span class="nf">ToInt32</span><span class="p">(</span><span class="n">portList</span><span class="p">[</span><span class="n">index</span><span class="p">]),</span>
+                  <span class="n">Ssl</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SslOption</span>
+                  <span class="p">{</span> 
+                      <span class="n">Enabled</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+                      <span class="n">ServerName</span> <span class="p">=</span> <span class="n">item</span><span class="p">,</span>
+                      <span class="n">CertPath</span> <span class="p">=</span> <span class="n">certPathList</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                      <span class="n">CertPassphrase</span> <span class="p">=</span> <span class="n">certPassphraseList</span><span class="p">[</span><span class="n">index</span><span class="p">++],</span>
+                      <span class="n">Version</span> <span class="p">=</span> <span class="n">SslProtocols</span><span class="p">.</span><span class="n">Tls12</span>
+                  <span class="p">}</span>
+              <span class="p">};</span>
+
+              <span class="n">addressList</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">endPoint</span><span class="p">);</span>
+          <span class="p">}</span>
+            
+          <span class="c1">//...</span>
+            
+      <span class="p">}</span>
+      <span class="k">else</span>
+      <span class="p">{</span>
+          <span class="c1">//...</span>
+      <span class="p">}</span> 
+  <span class="p">}</span> <span class="c1">// lock</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="rabbitmq-management">RabbitMQ Management</h2>
+
+<ul>
+  <li>當Server &amp; Client 都設定好之後。</li>
+  <li>需要再RabbitMQ Admin中添加生成憑證時設定的主機名，供登入時驗證用。<br />
+<img src="https://hackmd.io/_uploads/rJviZXAua.png" alt="Admin" /></li>
+</ul>
+
+<hr />
+
+<h2 id="驗證">驗證</h2>
+
+<ul>
+  <li>
+    <p>當以上都正確設定完成後，在 RabbitMQ Management 中可以確認，連線已啟用TLS/SSL協議<br />
+<img src="https://hackmd.io/_uploads/rkY6xQ0ua.png" alt="Connections" /></p>
+  </li>
+  <li>
+    <p>並且 Authentication 確認是使用 EXTERNAL 機制<br />
+<img src="https://hackmd.io/_uploads/B1zNW7COa.png" alt="EXTERNAL" /><br />
+<img src="https://hackmd.io/_uploads/HkpXM7Aup.png" alt="Ssl" /></p>
+  </li>
+  <li>
+    <p>使用 Swagger 測試</p>
+    <ul>
+      <li>
+        <p>在網頁測試模擬 Publish 發送訊息<br />
+  <img src="https://hackmd.io/_uploads/Hk4zYXNna.png" alt="Swagger測試" /></p>
+      </li>
+      <li>
+        <p>後端 Subscribe 接收<br />
+  <img src="https://hackmd.io/_uploads/HkK_DQVn6.png" alt="模擬接收" /></p>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://jensenxiao.github.io/Self-signed-certificate">Self-signed certificate</a></li>
+  <li><a href="https://www.rabbitmq.com/ssl.html">RabbitMQ - TLS Support</a></li>
+  <li><a href="https://groups.google.com/g/rabbitmq-users/c/Sxm0tNWCJuM?pli=1">RabbitMQ - google groups</a></li>
+</ul>
+
+<style>
+    .red {
+      color: red;
+    }
+    .Orange {
+      color: Darkorange ;   
+    }
+    .Brown {
+      color: SandyBrown;   
+    }
+    .yellow {
+      color: Gold;   
+    }
+</style>]]></content><author><name>Jensen Hsiao</name></author><category term="Security" /><category term="Security" /><category term="Message" /><category term="TLS/SSL" /><category term="C Sharp" /><summary type="html"><![CDATA[How to use External Authentication on RabbitMQ]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/RabbitMQ_logo.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/RabbitMQ_logo.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Self-signed certificate</title><link href="https://jensenxiao.github.io/security/Self-signed-certificate" rel="alternate" type="text/html" title="Self-signed certificate" /><published>2023-06-21T00:00:00+00:00</published><updated>2023-06-21T00:00:00+00:00</updated><id>https://jensenxiao.github.io/security/Self-signed-certificate</id><content type="html" xml:base="https://jensenxiao.github.io/security/Self-signed-certificate"><![CDATA[<h2 id="generate-root-ca">Generate Root CA</h2>
+
+<ul>
+  <li>產生 RootCA.key &amp; RootCA.pem
+    <ul>
+      <li>CN 主機名稱</li>
+      <li>days 憑證期限</li>
+    </ul>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout RootCA.key -out RootCA.pem -subj "/C=TW/CN=MockRoot-CA"
+</code></pre></div>    </div>
+  </li>
+  <li>將 RootCA.pem 轉為 RootCA.crt 格式
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl x509 -outform pem -in RootCA.pem -out RootCA.crt
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="generate-a-server-certificate">Generate a Server Certificate</h2>
+
+<ul>
+  <li>產生 Server-Private.key &amp; Server.csr
+    <ul>
+      <li>CN 主機名稱</li>
+    </ul>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  openssl req -new -nodes -newkey rsa:2048 -keyout  Server-Private.key -out Server.csr -subj "/CN=MockServer"
+</code></pre></div>    </div>
+  </li>
+  <li>新增 “domains.ext” 檔案，裡面設定所需資料
+    <ul>
+      <li>DNS 設定主機別名，可設定多個 DNS.1、DNS.2、DNS.3…</li>
+      <li>IP 設定主機 IP 位置，可設定多個 IP.1、IP.2、IP.3…<br />
+  <img src="https://hackmd.io/_uploads/BkDkcfC_6.png" alt="domains.ext" /></li>
+    </ul>
+  </li>
+  <li>使用 Server.csr &amp; RootCA.pem &amp; RootCA.key &amp; domains.ext 生成 Server-Certificate.crt
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl x509 -req -sha256 -days 1024 -in Server.csr -CA RootCA.pem -CAkey RootCA.key -CAcreateserial -extfile domains.ext -out Server-Certificate.crt
+</code></pre></div>    </div>
+  </li>
+  <li>所有產生出的檔案<br />
+<img src="https://hackmd.io/_uploads/H1l9DGAOp.png" alt="Server憑證生成" /></li>
+</ul>
+
+<hr />
+
+<h2 id="generate-a-client-certificate">Generate a Client Certificate</h2>
+
+<ul>
+  <li>生成 client-key
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl genrsa -out client-key.pem
+</code></pre></div>    </div>
+  </li>
+  <li>使用 client-key 設定主體名稱生成 signingrequest
+    <ul>
+      <li>CN 主機名稱
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl req -new -key client-key.pem -out signingrequest.csr -subj "CN=MockClient"
+</code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li>使用 signingrequest &amp; RootCA.crt &amp; RootCA.Key 生成 client-cert
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl x509 -req -days 1024 -in signingrequest.csr -CA RootCA.pem -CAkey RootCA.key -CAcreateserial -out client-cert.pem
+</code></pre></div>    </div>
+  </li>
+  <li>將 client-cert.pem 格式轉換為 client-cert.crt
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl x509 -in client-cert.pem -out client-cert.crt
+</code></pre></div>    </div>
+  </li>
+  <li>合併 client-cert.crt &amp; client-key.pem 為 pfx 格式
+    <ul>
+      <li>pass : 設定密碼(可留空)
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl pkcs12 -export -in client-cert.crt -inkey client-key.pem -out client.pfx -passout pass:
+</code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li>所有產生出的檔案<br />
+<img src="https://hackmd.io/_uploads/SyvHNST_a.png" alt="Client憑證" /></li>
+</ul>
+
+<hr />
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li>憑證認證方式
+    <ul>
+      <li>當產生憑證時，CA 會提供我們憑證（certificate.crt）。</li>
+      <li>通常還會提供一個包含根憑證和中間憑證的 CA Bundle File（ca_bundle.crt）。</li>
+      <li>而在驗證時，當接收到一個 SSL 憑證它會使用 CA bundle 來驗證該憑證的有效性，所以 Server 與 Client 兩端使用的 Certificate &amp; Private Key 不同沒關係，只要是同一個CA 發行的憑證都可以認證通過。</li>
+    </ul>
+  </li>
+</ul>]]></content><author><name>Jensen Hsiao</name></author><category term="Security" /><category term="Security" /><category term="TLS/SSL" /><summary type="html"><![CDATA[Generating a self-signed certificate using OpenSSL]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jensenxiao.github.io/assets/images/banners/OpenSSL_logo.png" /><media:content medium="image" url="https://jensenxiao.github.io/assets/images/banners/OpenSSL_logo.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry></feed>

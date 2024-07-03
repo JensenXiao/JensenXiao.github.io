@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Jest Testing - Introduction | Jensen Hsiao’s Blog</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta property="og:title" content="Jest Testing - Introduction">
+<meta name="author" content="Jensen Hsiao">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="How to create a test cases in Jest">
+<meta property="og:description" content="How to create a test cases in Jest">
+<link rel="canonical" href="https://jensenxiao.github.io/testing/Jest-Testing-Introduction">
+<meta property="og:url" content="https://jensenxiao.github.io/testing/Jest-Testing-Introduction">
+<meta property="og:site_name" content="Jensen Hsiao’s Blog">
+<meta property="og:image" content="https://jensenxiao.github.io/assets/images/banners/Jest.png">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2024-03-15T00:00:00+00:00">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="twitter:image" content="https://jensenxiao.github.io/assets/images/banners/Jest.png">
+<meta property="twitter:title" content="Jest Testing - Introduction">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Jensen Hsiao"},"dateModified":"2024-03-15T00:00:00+00:00","datePublished":"2024-03-15T00:00:00+00:00","description":"How to create a test cases in Jest","headline":"Jest Testing - Introduction","image":"https://jensenxiao.github.io/assets/images/banners/Jest.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://jensenxiao.github.io/testing/Jest-Testing-Introduction"},"url":"https://jensenxiao.github.io/testing/Jest-Testing-Introduction"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="canonical" href="https://jensenxiao.github.io">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="https://jensenxiao.github.io/feed.xml" title="Jensen Hsiao's Blog">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js" async></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/5.3.7/umd/photoswipe-lightbox.umd.min.js" async></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/5.3.7/umd/photoswipe.umd.min.js" async></script>
+<link href="//cdnjs.cloudflare.com/ajax/libs/photoswipe/5.3.7/photoswipe.min.css" rel="stylesheet">
+<style>
+  .pswp .pswp__container .pswp__img {
+    background-color: white;
+  }
+</style>
+
+<script>
+  function initPhotoSwipe() {
+    let customOptions = {};
+
+    try {
+      const data = ``.replaceAll("=>", ":");
+      customOptions = JSON.parse(data);
+    } catch (e) {
+      console.info("Invalid custom photo previewer options! " + e.message);
+    }
+
+    // Define object and gallery options
+    const options = Object.assign(
+      {
+        gallery: "section.main",
+        children: "a.photo-swipe",
+        photo_scale: 2,
+        // dynamic import is not supported in UMD version
+        pswpModule: PhotoSwipe,
+      },
+      customOptions
+    );
+
+    const galleryEl = document.querySelector(options.gallery);
+    if (!galleryEl) {
+      return;
+    }
+
+    const imgEls = [];
+    const els = galleryEl.querySelectorAll("img:not(.emoji)");
+    els.forEach((el) => {
+      if (el.src.trim() == "") {
+        return;
+      }
+      if (!imgEls.includes(el)) {
+        imgEls.push(el);
+      }
+    });
+
+    if (imgEls.length === 0) {
+      return;
+    }
+
+    imgEls.forEach((imgEl) => {
+      imgEl.outerHTML = `
+      <a class="photo-swipe"
+        href="${imgEl.src}"
+        data-pswp-width="${
+          Math.max(imgEl.naturalWidth, imgEl.width) * options.photo_scale
+        }"
+        data-pswp-height="${
+          Math.max(imgEl.naturalHeight, imgEl.height) * options.photo_scale
+        }"
+        data-pswp-caption="${imgEl.getAttribute("caption") || imgEl.alt}"
+        target="_blank">
+        ${imgEl.outerHTML}
+      </a>`;
+    });
+
+    // Initialize PhotoSwipe 5
+    var lightbox = new PhotoSwipeLightbox(options);
+
+    lightbox.init();
+  }
+
+  window.addEventListener("load", initPhotoSwipe);
+</script>
+</head>
+<body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="site-header site-header-transparent" role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner">
+<span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="Jensen Hsiao's Blog" src="" onerror="this.style.display='none'">
+  Jensen Hsiao's Blog
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger">
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewbox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger">
+<a class="page-link" href="/">HOME</a><a class="page-link" href="/archives">ARCHIVES</a><a class="page-link" href="/categories">CATEGORIES</a><a class="page-link" href="/tags">TAGS</a><a class="page-link" href="/about">ABOUT</a>
+
+
+
+
+
+
+
+
+
+<div class="page-link" style="display: inline;">
+
+
+
+<div id="google_translate_element" style="display: none;">
+</div>
+
+<div class="ct-language">
+  <ul class="list-unstyled ct-language-dropdown">
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="en">
+          
+          <img src="https://cdn.countryflags.com/thumbs/united-states-of-america/flag-400.png" title="English">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="fr">
+          
+          <img src="https://cdn.countryflags.com/thumbs/france/flag-400.png" title="French">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="zh-CN">
+          
+          <img src="https://cdn.countryflags.com/thumbs/china/flag-400.png" title="Chinese(Simple)">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ja">
+          
+          <img src="https://cdn.countryflags.com/thumbs/japan/flag-400.png" title="Japanese">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ko">
+          
+          <img src="https://cdn.countryflags.com/thumbs/south-korea/flag-400.png" title="Korean">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ru">
+          
+          <img src="https://cdn.countryflags.com/thumbs/russia/flag-400.png" title="Russian">
+          
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    autoDisplay: false,
+    layout: google.translate.TranslateElement.InlineLayout.VERTICAL
+  }, 'google_translate_element');
+
+  // Links to cross-origin destinations are unsafe
+  var gll = document.getElementsByClassName('goog-logo-link')[0];
+  if (gll) {
+    gll.setAttribute('rel', 'noopener');
+  }
+
+  function restoreLang() {
+    var iframe = document.getElementsByClassName('goog-te-banner-frame')[0];
+    if (!iframe) return;
+
+    var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    var restore_el = innerDoc.getElementsByTagName("button");
+
+    for (var i = 0; i < restore_el.length; i++) {
+      if (restore_el[i].id.indexOf("restore") >= 0) {
+        restore_el[i].click();
+        var close_el = innerDoc.getElementsByClassName("goog-close-link");
+        close_el[0].click();
+        return;
+      }
+    }
+  }
+
+  function triggerHtmlEvent(element, eventName) {
+    var event;
+    if (document.createEvent) {
+      event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    } else {
+      event = document.createEventObject();
+      event.eventType = eventName;
+      element.fireEvent('on' + event.eventType, event);
+    }
+  }
+
+  var googleCombo = document.querySelector("select.goog-te-combo");
+  var langSelect = document.querySelector('.ct-language');
+  langSelect.addEventListener('click', function(event) {
+    if (!event.target) {
+      return;
+    }
+
+    var selected = document.querySelector('.ct-language .ct-language-selected');
+    if (selected) {
+      selected.classList.remove('ct-language-selected');
+    }
+
+    var target = event.target;
+    while (target && target !== langSelect ) {
+      if (target.matches('.lang-select')) {
+        break;
+      }
+      target = target.parentElement;
+    }
+
+    if (target && target.matches('.lang-select')) {
+      var lang = target.getAttribute('data-lang');
+      if (googleCombo.value == lang) {
+        restoreLang();
+      } else {
+        target.parentElement.classList.add('ct-language-selected');
+        googleCombo.value = lang;
+        triggerHtmlEvent(googleCombo, 'change');
+      }
+    }
+
+    event.preventDefault();
+  });
+}
+</script>
+
+<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+</div>
+</div>
+        </nav>
+</div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;documentElement.setAttribute("data-header-transparent", "");var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+    html .page-banner .page-banner-img > *:first-child {
+      opacity: 0.9;
+    }
+
+    html[data-theme="dark"] .page-banner .page-banner-img > *:first-child {
+      opacity: 0.6462;
+    }
+  </style>
+<section class="page-banner">
+    <div class="page-banner-img">
+<div style="background-image: url(/assets/images/banners/Jest.png)"></div>
+        <img class="img-placeholder" src="/assets/images/banners/Jest.png">
+</div>
+    <div class="wrapper">
+      <div class="page-banner-inner">
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Jest Testing - Introduction</h1>
+  <h2 class="post-subtitle">How to create a test cases in Jest</h2>
+
+  <div class="post-meta">
+    <time class="dt-published" datetime="2024-03-15T00:00:00+00:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Mar 15, 2024
+    </time>
+
+    
+    <meta name="keywords" content="Jest,Test,Node.js,JavaScript">
+    <span class="post-author left-vsplit"><i class="fa fa-pencil"></i> Jensen Hsiao</span>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 8 mins</span>
+  </div>
+<div class="post-tags">
+<a class="post-tag" href="/tags.html#Jest">#Jest</a><a class="post-tag" href="/tags.html#Test">#Test</a><a class="post-tag" href="/tags.html#Node.js">#Node.js</a><a class="post-tag" href="/tags.html#JavaScript">#JavaScript</a>
+</div></header>
+</div>
+    </div>
+  </section><script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+
+
+
+
+
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <h2 id="jest-前端測試框架">Jest 前端測試框架</h2>
+
+<ul>
+  <li>
+    <p>目前在專案中希望能夠配合 CI/CD，以進行自動化測試。除了對後端進行自動化測試外，也希望能針對前端進行測試。</p>
+  </li>
+  <li>
+    <p>因此，我寫了一個使用 Jest 框架來建立前端測試環境的專案。未來各專案可以 clone 這份專案，並與 CI/CD 配合進行前端測試的開發。</p>
+  </li>
+  <li>
+    <p>在這個專案中，順手記錄了一些 Jest 框架應用，以及前端測試可能會用到的方法。</p>
+  </li>
+</ul>
+
+<h3 id="-如何安裝-jest">─ 如何安裝 Jest</h3>
+
+<ul>
+  <li>
+    <p>系統環境中需要先安裝 Node.js 和 npm。</p>
+  </li>
+  <li>終端機在你的專案路徑下輸入初始化 npm 的指令。
+    <ul>
+      <li>npm init -y<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>安裝 Jest
+    <ul>
+      <li>npm install –save-dev jest<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>使用 npm 輸入安裝 Jest 的指令之後，除了在 node_module 中加入 jest 模組之外，也會在 package.json 文件中加入一些基本的設定。 
+<img src="https://hackmd.io/_uploads/r1s_QYfwA.png" alt="安裝 Jest">
+</li>
+</ul>
+
+<h3 id="-專案結構">─ 專案結構</h3>
+
+<p>以下是 Jest 專案常見的結構。</p>
+<ul>
+  <li>
+<span class="red">test_project/</span>
+    <ul>
+      <li>
+<span class="red">src/</span>
+        <ul>
+          <li>components/
+            <ul>
+              <li>Component1.js</li>
+              <li>Component2.js</li>
+            </ul>
+          </li>
+          <li>utils/
+            <ul>
+              <li>util1.js</li>
+              <li>util2.js</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+<span class="red">tests/</span>
+        <ul>
+          <li>unit/
+            <ul>
+              <li>component1.test.js</li>
+              <li>component2.test.js</li>
+            </ul>
+          </li>
+          <li>integration/
+            <ul>
+              <li>integration_test1.test.js</li>
+              <li>integration_test2.test.js</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+<span class="red">coverage/</span>
+        <ul>
+          <li>lcov-report/
+            <ul>
+              <li>index.html</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>node_modules/</li>
+      <li><span class="red">package.json</span></li>
+      <li>setupTests.js<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>src/：這裡存放需要被測試的原始碼文件。</li>
+  <li>tests/：這裡存放針對 src/ 內程式碼撰寫的測試案例文件。</li>
+  <li>coverage/：這裡存放測試後生成的程式碼覆蓋率報告文件。</li>
+  <li>package.json：這個檔案包含了與測試相關的配置設定。</li>
+</ul>
+
+<p>那 setupTests.js 則是你在配置的時候，如果有定義 setupFiles，那你就可以在這支檔案裡面做一些測試前的準備工作。<br>
+<img src="https://hackmd.io/_uploads/r1JkBKMDA.png" alt="專案結構"></p>
+
+<h3 id="-測試相關配置">─ 測試相關配置</h3>
+
+<h4 id="-packagejson">─── package.json</h4>
+
+<ul>
+  <li>Jest 的 package.json 可以設定測試的相關配置，這些配置通常包括測試的入口文件、測試覆蓋率報告、以及其他一些自定義配置。</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"your-project-name"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Description of your project"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"scripts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="nl">"test"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jest"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="err">//</span><span class="w"> </span><span class="err">專案運行時所需的環境依賴</span><span class="w">
+  </span><span class="nl">"devDependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"jest"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^29.7.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jsdom"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^24.0.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jest-mock-axios"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^4.7.3"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jest-environment-jsdom"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^29.7.0"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="err">//</span><span class="w"> </span><span class="err">專案運行時所需的外部依賴</span><span class="w">
+  </span><span class="nl">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"jquery"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^3.7.1"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="err">//</span><span class="w"> </span><span class="err">定義</span><span class="w"> </span><span class="err">Jest</span><span class="w"> </span><span class="err">測試</span><span class="w"> </span><span class="err">option</span><span class="w">
+  </span><span class="nl">"jest"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"rootDir"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"roots"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"&lt;rootDir&gt;/test_project"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定在執行測試之前要執行的腳本文件</span><span class="w">
+    </span><span class="nl">"setupFiles"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"&lt;rootDir&gt;/test_project/setupTests.js"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定</span><span class="w"> </span><span class="err">Jest</span><span class="w"> </span><span class="err">測試的環境</span><span class="w">
+    </span><span class="nl">"testEnvironment"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jsdom"</span><span class="p">,</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定</span><span class="w"> </span><span class="err">Jest</span><span class="w"> </span><span class="err">測試文件的匹配模式</span><span class="w">
+    </span><span class="nl">"testMatch"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"**/__tests__/**/*.js"</span><span class="p">,</span><span class="w"> 
+      </span><span class="s2">"**/?(*.)+(spec|test).js"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">定義覆蓋率的閾值</span><span class="w">
+    </span><span class="nl">"coverageThreshold"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"global"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"branches"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"functions"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"lines"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"statements"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定哪些文件需要收集覆蓋率訊息</span><span class="w">
+    </span><span class="nl">"collectCoverageFrom"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"src/**/*.js"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定生成覆蓋率報告的格式</span><span class="w">
+    </span><span class="nl">"coverageReporters"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"json"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"lcov"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"text"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"clover"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">指定覆蓋率報告的輸出目錄</span><span class="w">
+    </span><span class="nl">"coverageDirectory"</span><span class="p">:</span><span class="w"> </span><span class="s2">"coverage"</span><span class="p">,</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<ul>
+  <li>
+<strong>devDependencies</strong> : 在這個節點中，列出了專案運行時所需的環境依賴。
+    <ul>
+      <li>這邊可以使用 npm install –save-dev jest 或 yarn add –dev jest 來安裝 Jest。<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>
+<strong>dependencies</strong> : 在這個節點中，列出了專案運行時所需的外部依賴。
+    <ul>
+      <li>這邊可以使用 npm install 來安裝第三方 module。<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>
+<strong>jest</strong> : 在這個節點中，定義了 Jest 測試的配置選項：
+    <ul>
+      <li>setupFiles: 指定在執行測試之前要執行的腳本文件。
+        <ul>
+          <li>可以在執行測試之前，預先執行一些全域設置、初始化或配置測試環境等。<br>
+  <img src="https://hackmd.io/_uploads/S1WphCvk0.png" alt="全域設置">
+</li>
+        </ul>
+      </li>
+      <li>testEnvironment: 指定 Jest 測試的環境。</li>
+      <li>testMatch: 指定 Jest 測試文件的匹配模式。</li>
+      <li>coverageThreshold: 定義代碼覆蓋率的閾值。</li>
+      <li>collectCoverageFrom: 指定哪些文件需要收集代碼覆蓋率訊息。</li>
+      <li>coverageReporters: 指定生成覆蓋率報告的格式。</li>
+      <li>coverageDirectory: 指定覆蓋率報告的輸出目錄。<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>上述是 package.json 配置中的一些常見選項，根據具體需求，可以在加入其他配置。</li>
+</ul>
+
+<h4 id="-jestconfigjs">─── jest.config.js</h4>
+
+<ul>
+  <li>
+    <p>Jest 運行測試時，會從專案目錄開始尋找 jest.config.js ，如果沒有找到，就會查看上面說到的 package.json 其中是否包含 jest 配置區塊。</p>
+  </li>
+  <li>
+    <p>而使用 JavaScript 來定義配置，可以使用一些變數、條件邏輯、或是可以直接使用 require 載入其他模組當作設置等等，比起簡單的 JSON 格式可以更靈活的配置你的測試環境，你可以根據不同的專案需求或結構，來選擇適合的配置方式。</p>
+  </li>
+</ul>
+
+<pre><code class="language-JavaScript">// jest.config.js
+module.exports = {
+    rootDir: "../",
+    roots: ["&lt;rootDir&gt;/test_project"],
+    setupFiles: ["&lt;rootDir&gt;/test_project/setupTests.js"],
+    testEnvironment: "jsdom",
+    testMatch: [
+        "**/__tests__/**/*.js", 
+        "**/?(*.)+(spec|test).js"
+    ],
+    coverageDirectory: "&lt;rootDir&gt;/test_project/Coverage/",
+    reporters: [
+        "default",
+        [require.resolve('jest-junit'), {
+            "outputDirectory": "&lt;rootDir&gt;/test_project/Coverage/",
+            "outputName": "jest-junit.xml"
+        }]
+    ]
+};
+</code></pre>
+
+<h3 id="-新增測試檔案">─ 新增測試檔案</h3>
+
+<ol>
+  <li>
+    <p>假設在 src/ 路徑下，有一個 calculator.js 需要被測試的檔案。</p>
+
+    <ul>
+      <li>test_project/
+        <ul>
+          <li>
+<strong>src/</strong>
+            <ul>
+              <li><span class="red">calculator.js</span></li>
+            </ul>
+          </li>
+          <li>tests/<br>
+<br>
+</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>需要將 calculator.js 內部方法使用 module.exports 導出。
+    <pre><code class="language-JavaScript"> // calculator.js
+ const calculator = {
+     function() {
+         //...
+     }
+ };
+
+ module.exports = calculator;
+</code></pre>
+    <ul>
+      <li>
+<a href="/testing/2024/03/22/Jest-Testing-Importing-and-Customizing-Modules.html#h--%E5%BC%95%E5%85%A5%E5%A4%96%E9%83%A8%E4%BE%9D%E8%B3%B4">(測試檔案如何使用被測試原始碼的內部方法)</a> <br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>再 tests/ 路徑下，新增名為 calculator.test.js 的測試檔案。
+    <ul>
+      <li>test_project/
+        <ul>
+          <li>src/
+            <ul>
+              <li>calculator.js</li>
+            </ul>
+          </li>
+          <li>
+<strong>tests/</strong>
+            <ul>
+              <li>
+<span class="red">calculator.test.js</span><br>
+<br>
+</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>在 calculator.test.js 測試檔案檔案內，引入被測試檔案。
+    <pre><code class="language-JavaScript"> // calculator.test.js
+ const Calculator = require('calculator');
+</code></pre>
+  </li>
+  <li>針對被測試檔案內部方法撰寫測試。
+    <pre><code class="language-JavaScript"> // calculator.test.js
+ const Calculator = require('calculator');
+
+ describe('testModule', () =&gt; {
+   it('TestFunction', () =&gt; {
+     //...
+     });
+
+   it('innerFunction', () =&gt; {
+     //...
+   });
+ });
+</code></pre>
+    <ul>
+      <li><a href="#-%E6%B8%AC%E8%A9%A6%E6%A1%88%E4%BE%8B">(如何撰寫測試案例)</a></li>
+      <li><a href="#-%E7%9B%A3%E8%A6%96--%E6%96%B7%E8%A8%80">(如何驗證測試結果)</a></li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="-如何運行測試">─ 如何運行測試</h3>
+
+<ul>
+  <li>在 Command-line (CMD) 運行測試<br>
+<br>
+    <ul>
+      <li>打開（CMD）使用 cd 命令進入你的專案目錄。<br>
+<br>
+</li>
+      <li>
+        <p>如果在 package.json 中設置了測試腳本，一旦進入了專案目錄，可以直接運行測試。</p>
+
+        <div class="language-bash highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>  <span class="nb">cd </span>path/to/your/project
+</code></pre></div>        </div>
+      </li>
+      <li>或是輸入指令進行測試，這將會運行所有的測試並輸出結果到終端。
+        <div class="language-bash highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>  npm <span class="nb">test</span>
+</code></pre></div>        </div>
+        <div class="language-bash highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>  npm <span class="nb">test</span> <span class="nt">--</span> <span class="nt">--coverage</span>        <span class="c"># --coverage 會顯示覆蓋率</span>
+</code></pre></div>        </div>
+      </li>
+      <li>預設情況下，Jest 會找：<strong>tests</strong> 資料夾內的 .js, .jsx, .ts, .tsx 以 .test 或 .spec 結尾的檔案。
+        <ul>
+          <li>例如 component1.test.js</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr>
+
+<h2 id="測試方法">測試方法</h2>
+
+<h3 id="-測試案例">─ 測試案例</h3>
+
+<ul>
+  <li>
+<strong>describe</strong>
+    <ul>
+      <li>組織測試案例：
+        <ul>
+          <li>使用 describe 函數來將測試案例分組，使其更有組織性和易讀性。<br>
+  <br>
+</li>
+        </ul>
+      </li>
+      <li>提供描述標題：
+        <ul>
+          <li>每個 describe 區塊有一個描述性的標題，可以清楚地說明這組測試案例的目的或主題。<br>
+  <br>
+</li>
+        </ul>
+      </li>
+      <li>隔離測試案例：
+        <ul>
+          <li>使用 describe 函數將相關的測試案例分組，這樣可以更好地隔離測試案例之間的影響。<br>
+  <br>
+</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+<strong>it / test</strong>
+    <ul>
+      <li>提供測試案例的描述：
+        <ul>
+          <li>通過標題清楚地描述測試的目的或要驗證的功能。  <br>
+  <br>
+</li>
+        </ul>
+      </li>
+      <li>提供可讀性和可維護性：
+        <ul>
+          <li>通過清晰的描述和組織良好的測試案例，提高測試的可讀性和可維護性。<br>
+  <br>
+</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<pre><code class="language-JavaScript">describe('testModule', () =&gt; {
+    it('TestFunction', () =&gt; {
+        //...
+    });
+    
+    it('innerFunction', () =&gt; {
+        //...
+    });
+});
+</code></pre>
+
+<h3 id="-hook">─ HOOK</h3>
+
+<ul>
+  <li>在 Jest 測試框架中有提供鉤子函數，beforeEach &amp; afterEach。
+    <ul>
+      <li>beforeEach &amp; afterEach 的觸發會<strong>限制在 describe 群組內</strong>。<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>
+<strong>beforeEach</strong>
+    <ul>
+      <li>函數會在每個測試運行<strong>之前</strong>運行一次。</li>
+      <li>通常用於設置測試的前置條件。</li>
+      <li>例如：初始化測試數據、創建模擬對象等
+        <pre><code class="language-JavaScript">  describe('testModule', () =&gt; {
+      beforeEach(() =&gt; {
+          // 在每個測試運行之前執行的操作
+          // 初始化測試數據、創建模擬對象等
+      });
+            
+      it('TestFunction', () =&gt; {
+          //...
+      });
+  });
+</code></pre>
+        <p><br></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+<strong>afterEach</strong>
+    <ul>
+      <li>函數會在每個測試運行<strong>之後</strong>運行一次。</li>
+      <li>通常用於清理測試過程中可能產生的副作用。</li>
+      <li>例如：重置測試數據、銷毀模擬對象等。
+        <pre><code class="language-JavaScript">  describe('testModule', () =&gt; {
+      afterEach(() =&gt; {
+          // 在每個測試運行之後執行的操作
+          // 清理測試過程中可能產生的副作用、重置測試數據、銷毀模擬對象等
+      });
+        
+      it('TestFunction', () =&gt; {
+          //...
+      });
+  });
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="-監視--斷言">─ 監視 &amp; 斷言</h3>
+
+<ul>
+  <li>
+    <p>而該怎麼驗證測試是否正確，Jest 提供 jest.spyOn() 函式。</p>
+
+    <ul>
+      <li>
+        <p>jest.spyOn() 用於創建一個對特定物件的方法進行模擬的 Spy（間諜）。</p>
+      </li>
+      <li>
+        <p>jest.spyOn() 也可以監視一個物件的特定方法，記錄它的呼叫情況以及接收到的參數。</p>
+
+        <pre><code class="language-JavaScript">  // Module.test.js
+  // 引入被測試的模組
+  const Module = require('./Module');
+
+  // 使用 jest.spyOn 監視 TestFunction 方法
+  const spy = jest.spyOn(Module, 'TestFunction');
+
+  // 呼叫 TestFunction 方法
+  Module.TestFunction();
+
+  // 斷言 TestFunction 方法被呼叫過
+  expect(spy).toHaveBeenCalled();
+
+  // 清除監視，恢復原始方法
+  spy.mockRestore();
+</code></pre>
+        <p><br></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>在上述 jest.spyOn 監視物件方法後，可以使用 Jest 提供的 expect() 斷言函式來進行測試</p>
+    <ul>
+      <li>
+<strong>返回值的斷言方法</strong>
+        <ol>
+          <li>expect().toBe(value): 斷言實際值是否與預期值完全相等。</li>
+          <li>expect().toEqual(value): 斷言兩個對象是否在值上相等（所有屬性和屬性值相等）。</li>
+          <li>expect().toMatch(pattern): 斷言字符串是否與正則表達式匹配。</li>
+          <li>expect().toContain(item): 斷言某個集合（數組、Set）是否包含指定的元素。</li>
+          <li>
+<a href="https://jestjs.io/docs/expect">more</a>…<br>
+<br>
+</li>
+        </ol>
+      </li>
+      <li>
+<strong>監視的斷言方法</strong>
+        <ol>
+          <li>toHaveBeenCalled(): 斷言被監視的方法是否被呼叫過。</li>
+          <li>toHaveBeenCalledWith(arg1, arg2, …): 斷言被監視的方法是否被指定的參數呼叫過。</li>
+          <li>toHaveReturned(): 斷言被監視的方法是否有返回值。</li>
+          <li>toHaveReturnedWith(value): 斷言被監視的方法是否有指定的返回值。</li>
+          <li>toHaveBeenCalledTimes(number): 斷言監視方法被呼叫的次數是否符合指定的數量。</li>
+          <li>
+<a href="https://jestjs.io/docs/expect">more</a>…</li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="-模擬方法行為">─ 模擬方法行為</h3>
+
+<ul>
+  <li>
+<strong>mockReturnValue</strong>
+    <ul>
+      <li>mockReturnValue 用於設置 mock 函數的返回值。它將覆蓋原始函數的返回值，無論函數的實際執行結果是什麼，都將返回被設置的值。</li>
+      <li>通常與 jest.fn() 一起使用，用於創建一個新的 mock 函數並設置其返回值。</li>
+      <li>當你想要模擬函數的返回值，但不關心函數的實際實現時，可以使用 mockReturnValue。<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>
+<strong>mockImplementation</strong>
+    <ul>
+      <li>mockImplementation 用於設置 mock 函數的實現。它將覆蓋原始函數的實現，無論原始函數的實際代碼是什麼，都將執行被設置的函數實現。</li>
+      <li>通常與 jest.fn() 一起使用，用於創建一個新的 mock 函數並設置其實現。</li>
+      <li>當你想要模擬函數的實現，並指定特定的行為或邏輯時，可以使用 mockImplementation。<br>
+<br>
+</li>
+    </ul>
+  </li>
+  <li>當測試某個方法時，該方法內部調用了其他方法並依賴其回傳值時，使用模擬回傳值的方法來測試。
+    <ul>
+      <li>隔離被測試方法的行為，專注於測試它的功能，而不需要依賴其他方法的實際實現。</li>
+      <li>可以使測試更加獨立和可靠，並且在測試失敗時更容易定位問題。<br>
+<br>
+</li>
+    </ul>
+
+    <pre><code class="language-JavaScript">  // Module.js
+  function TestFunction() {
+    // 假設 TestFunction 內部調用了 innerFunction 方法
+    const value = innerFunction();
+    return value;
+  }
+
+  function innerFunction() {
+    //...內部處理邏輯
+  }
+
+  module.exports = {
+    TestFunction: TestFunction,
+    innerFunction: innerFunction
+  };
+</code></pre>
+
+    <pre><code class="language-JavaScript">  // Module.test.js
+  const Module = require('./Module');
+
+  // 模擬 innerFunction 的返回值
+  const innerSpy = jest.spyOn(Module, 'innerFunction').mockReturnValue('jensen');
+
+  // 使用 jest.spyOn 監視 TestFunction 方法
+  const spy = jest.spyOn(Module, 'TestFunction');
+
+  // 調用 TestFunction 方法
+  const result = Module.TestFunction();
+
+  // 斷言方法的返回值是否正確
+  expect(result).toBe('jensen');
+
+  // 清除監視
+  spy.mockRestore();
+  innerSpy.mockRestore();
+</code></pre>
+  </li>
+</ul>
+
+<h3 id="-清除--恢復">─ 清除 &amp; 恢復</h3>
+<ul>
+  <li>
+    <p>在測試結束後要清除監視，恢復原始方法，避免引響其他測試，確保測試獨立性。</p>
+
+    <ol>
+      <li>jest.clearAllMocks(): 清除所有模擬函數的調用次數、傳入的參數等，但不還原模擬函數的行為。</li>
+      <li>jest.clearAllTimers(): 清除所有計時器的設置，包括 setTimeout、setInterval 等。</li>
+      <li>jest.resetAllMocks(): 重置所有模擬函數的狀態，包括還原它們的行為以及清除調用信息。</li>
+      <li>jest.resetModules(): 重置所有模組的狀態，將它們從快取中卸載並重新加載，使它們回到初始狀態。</li>
+      <li>jest.restoreAllMocks(): 還原所有使用 jest.spyOn 創建的模擬函數的原始實現。</li>
+      <li>jest.runOnlyPendingTimers(): 立即執行所有處於待定狀態的計時器，而不需要等待真實的時間。</li>
+      <li>jest.advanceTimersByTime(ms): 快進指定時間(ms)以觸發計時器。</li>
+    </ol>
+  </li>
+</ul>
+
+<hr>
+
+<h2 id="覆蓋率分析">覆蓋率分析</h2>
+
+<h3 id="-command">─ Command</h3>
+<ul>
+  <li>
+    <p>當執行測試之後在在 Terminal 畫面上會顯示目前被測程式，測試到的覆蓋率 %。<br>
+<img src="https://hackmd.io/_uploads/B1RkOZOy0.png" alt="覆蓋率"></p>
+  </li>
+  <li>
+    <p>當中可以看到測試案例是成功或是失敗，最後會統計整體與個別的覆蓋率資訊。<br>
+<img src="https://hackmd.io/_uploads/rJmZFOfvR.png" alt="終端機覆蓋率"></p>
+  </li>
+</ul>
+
+<h3 id="-html">─ HTML</h3>
+<ul>
+  <li>
+    <p>執行測試完畢的同時在 Coverage 資料夾下的 lcov-report 裡，也會生成一個 index.html。<br>
+<img src="https://hackmd.io/_uploads/Hk9LUPZkR.png" alt="index網頁"></p>
+  </li>
+  <li>
+    <p>裡面提供了更詳細的圖表分析報告。<br>
+<img src="https://hackmd.io/_uploads/Hy8w_bdy0.png" alt="總分析報告"></p>
+  </li>
+  <li>
+    <p>可以針對個別檔案點擊，查看詳細的內容。</p>
+    <ul>
+      <li>
+        <p>內容會以<span class="red"><strong>紅色</strong></span>標註指出未覆蓋到的 Statements。</p>
+      </li>
+      <li>
+        <p>而在判斷處會指出其中 <strong>if</strong> 或 <strong>else</strong> 沒有被測試到。</p>
+      </li>
+      <li>
+        <p>能夠更精確的撰寫測試案例，以便覆蓋到所有 Statements。</p>
+      </li>
+    </ul>
+
+    <p><img src="https://hackmd.io/_uploads/rJ6kdvWkA.png" alt="個別分析報告"></p>
+  </li>
+</ul>
+
+<hr>
+
+<h2 id="reference">Reference</h2>
+<ul>
+  <li><a href="https://jestjs.io/docs/getting-started">Jest Docs</a></li>
+  <li><a href="https://jestjs.io/docs/expect">Jest Expect</a></li>
+  <li><a href="https://jestjs.io/docs/api#methods">Jest Methods</a></li>
+  <li><a href="https://jestjs.io/docs/mock-functions">Jest Mock Functions</a></li>
+</ul>
+
+<style>
+    .red {
+      color: red;
+    }
+    .Orange {
+      color: Darkorange ;   
+    }
+    .Brown {
+      color: SandyBrown;   
+    }
+    .yellow {
+      color: Gold;   
+    }
+</style>
+
+
+
+    </div>
+
+</article>
+<div class="post-nav">
+<a class="previous" href="/security/LDAP-Injection" title="LDAP Injection">LDAP Injection</a><a class="next" href="/testing/Jest-Testing-Importing-and-Customizing-Modules" title="Jest Testing - Importing and Customizing Modules">Jest Testing - Importing and Customizing...</a>
+</div>
+<div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li class="">
+          <a class="post-link" href="/security/Self-signed-certificate" title="Self-signed certificate">
+            Self-signed certificate<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+<li class="">
+          <a class="post-link" href="/security/RabbitMQ-External" title="RabbitMQ with External Auth">
+            RabbitMQ with External Auth<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+<li class="">
+          <a class="post-link" href="/testing/Jest-Testing-AJAX" title="Jest Testing - AJAX">
+            Jest Testing - AJAX<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+<li class="">
+          <a class="post-link" href="/security/LDAP-Injection" title="LDAP Injection">
+            LDAP Injection<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+</ul>
+    </div>
+<div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+<div>Unpublished Work <span class="copyleft">©</span> 2023-2024 Jensen Hsiao</div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="https://jekyllrb.com/">Jekyll</a>
+</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
